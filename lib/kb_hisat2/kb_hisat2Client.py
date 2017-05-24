@@ -33,45 +33,27 @@ class kb_hisat2(object):
             trust_all_ssl_certificates=trust_all_ssl_certificates,
             auth_svc=auth_svc)
 
-    def filter_contigs(self, params, context=None):
+    def run_hisat2(self, params, context=None):
         """
-        The actual function is declared using 'funcdef' to specify the name
-        and input/return arguments to the function.  For all typical KBase
-        Apps that run in the Narrative, your function should have the 
-        'authentication required' modifier.
-        :param params: instance of type "FilterContigsParams" (A 'typedef'
-           can also be used to define compound or container objects, like
-           lists, maps, and structures.  The standard KBase convention is to
-           use structures, as shown here, to define the input and output of
-           your function.  Here the input is a reference to the Assembly data
-           object, a workspace to save output, and a length threshold for
-           filtering. To define lists and maps, use a syntax similar to C++
-           templates to indicate the type contained in the list or map.  For
-           example: list <string> list_of_strings; mapping <string, int>
-           map_of_ints;) -> structure: parameter "assembly_input_ref" of type
-           "assembly_ref" (A 'typedef' allows you to provide a more specific
-           name for a type.  Built-in primitive types include 'string',
-           'int', 'float'.  Here we define a type named assembly_ref to
-           indicate a string that should be set to a KBase ID reference to an
-           Assembly data object.), parameter "workspace_name" of String,
-           parameter "min_length" of Long
-        :returns: instance of type "FilterContigsResults" (Here is the
-           definition of the output of the function.  The output can be used
-           by other SDK modules which call your code, or the output
-           visualizations in the Narrative.  'report_name' and 'report_ref'
-           are special output fields- if defined, the Narrative can
-           automatically render your Report.) -> structure: parameter
-           "report_name" of String, parameter "report_ref" of String,
-           parameter "assembly_output" of type "assembly_ref" (A 'typedef'
-           allows you to provide a more specific name for a type.  Built-in
-           primitive types include 'string', 'int', 'float'.  Here we define
-           a type named assembly_ref to indicate a string that should be set
-           to a KBase ID reference to an Assembly data object.), parameter
-           "n_initial_contigs" of Long, parameter "n_contigs_removed" of
-           Long, parameter "n_contigs_remaining" of Long
+        :param params: instance of type "Hisat2Params" -> structure:
+           parameter "ws_id" of String, parameter "sampleset_id" of String,
+           parameter "genome_id" of String, parameter "num_threads" of Long,
+           parameter "quality_score" of String, parameter "skip" of Long,
+           parameter "trim3" of Long, parameter "trim5" of Long, parameter
+           "np" of Long, parameter "minins" of Long, parameter "maxins" of
+           Long, parameter "orientation" of String, parameter
+           "min_intron_length" of Long, parameter "max_intron_length" of
+           Long, parameter "no_spliced_alignment" of type "bool" (indicates
+           true or false values, false <= 0, true >=1), parameter
+           "transcriptome_mapping_only" of type "bool" (indicates true or
+           false values, false <= 0, true >=1), parameter "tailor_alignments"
+           of String
+        :returns: instance of type "ResultsToReport" (Object for Report type)
+           -> structure: parameter "report_name" of String, parameter
+           "report_ref" of String
         """
         return self._client.call_method(
-            'kb_hisat2.filter_contigs',
+            'kb_hisat2.run_hisat2',
             [params], self._service_ver, context)
 
     def status(self, context=None):

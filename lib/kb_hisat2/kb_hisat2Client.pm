@@ -109,9 +109,9 @@ sub new
 
 
 
-=head2 filter_contigs
+=head2 run_hisat2
 
-  $output = $obj->filter_contigs($params)
+  $return = $obj->run_hisat2($params)
 
 =over 4
 
@@ -120,20 +120,30 @@ sub new
 =begin html
 
 <pre>
-$params is a kb_hisat2.FilterContigsParams
-$output is a kb_hisat2.FilterContigsResults
-FilterContigsParams is a reference to a hash where the following keys are defined:
-	assembly_input_ref has a value which is a kb_hisat2.assembly_ref
-	workspace_name has a value which is a string
-	min_length has a value which is an int
-assembly_ref is a string
-FilterContigsResults is a reference to a hash where the following keys are defined:
+$params is a kb_hisat2.Hisat2Params
+$return is a kb_hisat2.ResultsToReport
+Hisat2Params is a reference to a hash where the following keys are defined:
+	ws_id has a value which is a string
+	sampleset_id has a value which is a string
+	genome_id has a value which is a string
+	num_threads has a value which is an int
+	quality_score has a value which is a string
+	skip has a value which is an int
+	trim3 has a value which is an int
+	trim5 has a value which is an int
+	np has a value which is an int
+	minins has a value which is an int
+	maxins has a value which is an int
+	orientation has a value which is a string
+	min_intron_length has a value which is an int
+	max_intron_length has a value which is an int
+	no_spliced_alignment has a value which is a kb_hisat2.bool
+	transcriptome_mapping_only has a value which is a kb_hisat2.bool
+	tailor_alignments has a value which is a string
+bool is an int
+ResultsToReport is a reference to a hash where the following keys are defined:
 	report_name has a value which is a string
 	report_ref has a value which is a string
-	assembly_output has a value which is a kb_hisat2.assembly_ref
-	n_initial_contigs has a value which is an int
-	n_contigs_removed has a value which is an int
-	n_contigs_remaining has a value which is an int
 
 </pre>
 
@@ -141,36 +151,43 @@ FilterContigsResults is a reference to a hash where the following keys are defin
 
 =begin text
 
-$params is a kb_hisat2.FilterContigsParams
-$output is a kb_hisat2.FilterContigsResults
-FilterContigsParams is a reference to a hash where the following keys are defined:
-	assembly_input_ref has a value which is a kb_hisat2.assembly_ref
-	workspace_name has a value which is a string
-	min_length has a value which is an int
-assembly_ref is a string
-FilterContigsResults is a reference to a hash where the following keys are defined:
+$params is a kb_hisat2.Hisat2Params
+$return is a kb_hisat2.ResultsToReport
+Hisat2Params is a reference to a hash where the following keys are defined:
+	ws_id has a value which is a string
+	sampleset_id has a value which is a string
+	genome_id has a value which is a string
+	num_threads has a value which is an int
+	quality_score has a value which is a string
+	skip has a value which is an int
+	trim3 has a value which is an int
+	trim5 has a value which is an int
+	np has a value which is an int
+	minins has a value which is an int
+	maxins has a value which is an int
+	orientation has a value which is a string
+	min_intron_length has a value which is an int
+	max_intron_length has a value which is an int
+	no_spliced_alignment has a value which is a kb_hisat2.bool
+	transcriptome_mapping_only has a value which is a kb_hisat2.bool
+	tailor_alignments has a value which is a string
+bool is an int
+ResultsToReport is a reference to a hash where the following keys are defined:
 	report_name has a value which is a string
 	report_ref has a value which is a string
-	assembly_output has a value which is a kb_hisat2.assembly_ref
-	n_initial_contigs has a value which is an int
-	n_contigs_removed has a value which is an int
-	n_contigs_remaining has a value which is an int
 
 
 =end text
 
 =item Description
 
-The actual function is declared using 'funcdef' to specify the name
-and input/return arguments to the function.  For all typical KBase
-Apps that run in the Narrative, your function should have the 
-'authentication required' modifier.
+
 
 =back
 
 =cut
 
- sub filter_contigs
+ sub run_hisat2
 {
     my($self, @args) = @_;
 
@@ -179,7 +196,7 @@ Apps that run in the Narrative, your function should have the
     if ((my $n = @args) != 1)
     {
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function filter_contigs (received $n, expecting 1)");
+							       "Invalid argument count for function run_hisat2 (received $n, expecting 1)");
     }
     {
 	my($params) = @args;
@@ -187,31 +204,31 @@ Apps that run in the Narrative, your function should have the
 	my @_bad_arguments;
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
-	    my $msg = "Invalid arguments passed to filter_contigs:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    my $msg = "Invalid arguments passed to run_hisat2:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'filter_contigs');
+								   method_name => 'run_hisat2');
 	}
     }
 
     my $url = $self->{url};
     my $result = $self->{client}->call($url, $self->{headers}, {
-	    method => "kb_hisat2.filter_contigs",
+	    method => "kb_hisat2.run_hisat2",
 	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
 					       code => $result->content->{error}->{code},
-					       method_name => 'filter_contigs',
+					       method_name => 'run_hisat2',
 					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method filter_contigs",
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method run_hisat2",
 					    status_line => $self->{client}->status_line,
-					    method_name => 'filter_contigs',
+					    method_name => 'run_hisat2',
 				       );
     }
 }
@@ -259,16 +276,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'filter_contigs',
+                method_name => 'run_hisat2',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method filter_contigs",
+            error => "Error invoking method run_hisat2",
             status_line => $self->{client}->status_line,
-            method_name => 'filter_contigs',
+            method_name => 'run_hisat2',
         );
     }
 }
@@ -305,7 +322,7 @@ sub _validate_version {
 
 
 
-=head2 assembly_ref
+=head2 bool
 
 =over 4
 
@@ -313,11 +330,7 @@ sub _validate_version {
 
 =item Description
 
-A 'typedef' allows you to provide a more specific name for
-a type.  Built-in primitive types include 'string', 'int',
-'float'.  Here we define a type named assembly_ref to indicate
-a string that should be set to a KBase ID reference to an
-Assembly data object.
+indicates true or false values, false <= 0, true >=1
 
 
 =item Definition
@@ -325,14 +338,14 @@ Assembly data object.
 =begin html
 
 <pre>
-a string
+an int
 </pre>
 
 =end html
 
 =begin text
 
-a string
+an int
 
 =end text
 
@@ -340,7 +353,7 @@ a string
 
 
 
-=head2 FilterContigsParams
+=head2 ResultsToReport
 
 =over 4
 
@@ -348,61 +361,7 @@ a string
 
 =item Description
 
-A 'typedef' can also be used to define compound or container
-objects, like lists, maps, and structures.  The standard KBase
-convention is to use structures, as shown here, to define the
-input and output of your function.  Here the input is a
-reference to the Assembly data object, a workspace to save
-output, and a length threshold for filtering.
-
-To define lists and maps, use a syntax similar to C++ templates
-to indicate the type contained in the list or map.  For example:
-
-    list <string> list_of_strings;
-    mapping <string, int> map_of_ints;
-
-
-=item Definition
-
-=begin html
-
-<pre>
-a reference to a hash where the following keys are defined:
-assembly_input_ref has a value which is a kb_hisat2.assembly_ref
-workspace_name has a value which is a string
-min_length has a value which is an int
-
-</pre>
-
-=end html
-
-=begin text
-
-a reference to a hash where the following keys are defined:
-assembly_input_ref has a value which is a kb_hisat2.assembly_ref
-workspace_name has a value which is a string
-min_length has a value which is an int
-
-
-=end text
-
-=back
-
-
-
-=head2 FilterContigsResults
-
-=over 4
-
-
-
-=item Description
-
-Here is the definition of the output of the function.  The output
-can be used by other SDK modules which call your code, or the output
-visualizations in the Narrative.  'report_name' and 'report_ref' are
-special output fields- if defined, the Narrative can automatically
-render your Report.
+Object for Report type
 
 
 =item Definition
@@ -413,10 +372,6 @@ render your Report.
 a reference to a hash where the following keys are defined:
 report_name has a value which is a string
 report_ref has a value which is a string
-assembly_output has a value which is a kb_hisat2.assembly_ref
-n_initial_contigs has a value which is an int
-n_contigs_removed has a value which is an int
-n_contigs_remaining has a value which is an int
 
 </pre>
 
@@ -427,10 +382,68 @@ n_contigs_remaining has a value which is an int
 a reference to a hash where the following keys are defined:
 report_name has a value which is a string
 report_ref has a value which is a string
-assembly_output has a value which is a kb_hisat2.assembly_ref
-n_initial_contigs has a value which is an int
-n_contigs_removed has a value which is an int
-n_contigs_remaining has a value which is an int
+
+
+=end text
+
+=back
+
+
+
+=head2 Hisat2Params
+
+=over 4
+
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+ws_id has a value which is a string
+sampleset_id has a value which is a string
+genome_id has a value which is a string
+num_threads has a value which is an int
+quality_score has a value which is a string
+skip has a value which is an int
+trim3 has a value which is an int
+trim5 has a value which is an int
+np has a value which is an int
+minins has a value which is an int
+maxins has a value which is an int
+orientation has a value which is a string
+min_intron_length has a value which is an int
+max_intron_length has a value which is an int
+no_spliced_alignment has a value which is a kb_hisat2.bool
+transcriptome_mapping_only has a value which is a kb_hisat2.bool
+tailor_alignments has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+ws_id has a value which is a string
+sampleset_id has a value which is a string
+genome_id has a value which is a string
+num_threads has a value which is an int
+quality_score has a value which is a string
+skip has a value which is an int
+trim3 has a value which is an int
+trim5 has a value which is an int
+np has a value which is an int
+minins has a value which is an int
+maxins has a value which is an int
+orientation has a value which is a string
+min_intron_length has a value which is an int
+max_intron_length has a value which is an int
+no_spliced_alignment has a value which is a kb_hisat2.bool
+transcriptome_mapping_only has a value which is a kb_hisat2.bool
+tailor_alignments has a value which is a string
 
 
 =end text
