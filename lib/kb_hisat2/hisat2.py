@@ -1,3 +1,5 @@
+from hisat2indexmanager import Hisat2IndexManager
+
 class Hisat2(object):
     def __init__(self):
         pass

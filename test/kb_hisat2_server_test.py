@@ -4,6 +4,7 @@ import os  # noqa: F401
 import json  # noqa: F401
 import time
 import requests
+import shutil
 
 from os import environ
 try:
@@ -14,9 +15,11 @@ except:
 from pprint import pprint  # noqa: F401
 
 from biokbase.workspace.client import Workspace as workspaceService
+from GenomeFileUtil.GenomeFileUtilClient import GenomeFileUtil
 from kb_hisat2.kb_hisat2Impl import kb_hisat2
 from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
+from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 
@@ -40,11 +43,11 @@ class kb_hisat2Test(unittest.TestCase):
         cls.ctx = MethodContext(None)
         cls.ctx.update({'token': token,
                         'user_id': user_id,
-                        'provenance': [
-                            {'service': 'kb_hisat2',
-                             'method': 'please_never_use_it_in_production',
-                             'method_params': []
-                             }],
+                        'provenance': [{
+                            'service': 'kb_hisat2',
+                            'method': 'please_never_use_it_in_production',
+                            'method_params': []
+                        }],
                         'authenticated': 1})
         cls.wsURL = cls.cfg['workspace-url']
         cls.wsClient = workspaceService(cls.wsURL)
@@ -102,8 +105,15 @@ class kb_hisat2Test(unittest.TestCase):
         })
         return genome_ref.get('genome_ref') # yeah, i know.
 
-    def test_run_hisat2_ok(self):
-        self.assertTrue(True)
+    def test_build_hisat2_index_from_genome_ok(self):
+        base_gbk_file = "data/streptococcus_pneumoniae_R6_ref.gbff"
+        gbk_file = os.path.join(self.scratch, os.path.basename(base_gbk_file))
+        shutil.copy(base_gbk_file, gbk_file)
+        genome_ref = self.load_genbank_file(gbk_file, 'my_test_genome')
+        manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
+        print("getting hisat2 index from ref = {}".format(genome_ref))
+        idx_prefix = manager.get_hisat2_index(genome_ref)
+        self.assertIsNotNone(idx_prefix)
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
     # def test_filter_contigs_ok(self):

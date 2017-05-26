@@ -44,7 +44,7 @@ def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):
             assembly_ref.append(";".join(ref_info.get('paths')[idx]))
 
     if len(assembly_ref) == 1:
-        return fetch_fasta_from_assembly(assembly_ref, ws_url, callback_url)
+        return fetch_fasta_from_assembly(assembly_ref[0], ws_url, callback_url)
     else:
         raise ValueError("Multiple assemblies found associated with the given genome ref {}! Unable to continue.")
 
@@ -54,9 +54,9 @@ def fetch_fasta_from_assembly(assembly_ref, ws_url, callback_url):
     From an assembly or contigset, this uses a data file util to build a FASTA file and return the
     path to it.
     """
-    allowed_types = ['KBaseFile.Assembly', 'KBaseAssembly.Assembly', 'KBaseGenomes.ContigSet']
+    allowed_types = ['KBaseFile.Assembly', 'KBaseGenomeAnnotations.Assembly', 'KBaseGenomes.ContigSet']
     if not check_ref_type(assembly_ref, allowed_types, ws_url):
-        raise ValueError("The given reference {} is invalid for fetching a FASTA file")
+        raise ValueError("The given reference {} is invalid for fetching a FASTA file".format(assembly_ref))
     au = AssemblyUtil(callback_url)
     return au.get_assembly_as_fasta({'ref': assembly_ref})
 

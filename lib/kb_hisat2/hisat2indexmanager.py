@@ -35,10 +35,11 @@ class Hisat2IndexManager(object):
             index_dir = the directory with the index files
             prefix = the prefix of all files in that dir (to be used as input into HISAT2)
         """
-        index_dir = self._fetch_hisat2_index({})
+        index_dir = self._fetch_hisat2_index(source_ref, {})
         if index_dir:
             return index_dir
-        index_dir = self._build_hisat2_index(source_ref, {})
+        index_prefix = self._build_hisat2_index(source_ref, {})
+        return index_prefix
 
     def inspect_hisat2_index(self):
         pass
@@ -49,26 +50,37 @@ class Hisat2IndexManager(object):
         This also caches them, um, elsewhere so they can be found again.
         """
         # check options and raise ValueError here as needed.
+        print("Building HISAT2 index files for {}".format(source_ref))
         idx_prefix = "kb_hisat_idx-" + str(uuid.uuid4())
         try:
+            print("Fetching FASTA file from object {}".format(source_ref))
             fasta_file = fetch_fasta_from_object(source_ref, self.workspace_url, self.callback_url)
+            print("Done fetching FASTA file! Path = {}".format(fasta_file.get("path", None)))
         except ValueError as err:
             print("Incorrect object type for fetching a FASTA file!")
+            raise
 
         fasta_path = fasta_file.get("path", None)
         if fasta_path is None:
             raise RuntimeError("FASTA file fetched from object {} doesn't seem to exist!".format(source_ref))
         build_hisat2_cmd = [
-            self.HISAT_PATH + "/hisat2-build",
+            "hisat2-build",
             "-f",
             fasta_path
         ]
         if options.get('num_threads', None) is not None:
             build_hisat2_cmd.extend(["-p", options['num_threads']])
         build_hisat2_cmd.append(idx_prefix)
-        subprocess.Popen(build_hisat2_cmd, shell=False)
+        print("Executing build-hisat2 command: {}".format(build_hisat2_cmd))
+        p = subprocess.Popen(build_hisat2_cmd, shell=False)
+        ret_code = p.wait()
+        if ret_code != 0:
+            raise RuntimeError('Failed to generate HISAT2 index files!')
+        print("Done! HISAT2 index files created with prefix {}".format(idx_prefix))
+        return idx_prefix
 
-    def _fetch_hisat2_index(self, options):
+
+    def _fetch_hisat2_index(self, source_ref, options):
         """
         Fetches HISAT2 indexes from a remote location, if they're available.
         """
