@@ -83,11 +83,15 @@ This sample module contains one small method - filter_contigs.
                 print(err)
             raise ValueError("Errors found in parameters, see above for details.")
 
+        hs_runner = Hisat2()
         # 1. Get hisat2 index from genome.
         #    a. If it exists in cache, use that.
         #    b. Otherwise, build it (TODO: make get_hisat2_index function)
+        index_info = hs_runner.build_index()
         # 2. Get reads as files in filesystem (DFU function)
+
         # 3. Run hisat with index and reads.
+        return_val = hs_runner.run_hisat2()
 
         #END run_hisat2
 
