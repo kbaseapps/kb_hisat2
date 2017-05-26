@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
 # The header block is where all import statments should live
+from __future__ import print_function
 import os
 from Bio import SeqIO
 from pprint import pprint, pformat
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from KBaseReport.KBaseReportClient import KBaseReport
+from util import (
+    check_hisat2_parameters,
+    setup_hisat2
+)
 #END_HEADER
 
 
@@ -37,14 +42,14 @@ This sample module contains one small method - filter_contigs.
     # be found
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
-        
+
         # Any configuration parameters that are important should be parsed and
         # saved in the constructor.
         self.callback_url = os.environ['SDK_CALLBACK_URL']
         self.shared_folder = config['scratch']
+        self.num_threads = 2
 
         #END_CONSTRUCTOR
-        pass
 
 
     def run_hisat2(self, ctx, params):
@@ -69,6 +74,21 @@ This sample module contains one small method - filter_contigs.
         # ctx is the context object
         # return variables are: returnVal
         #BEGIN run_hisat2
+
+        # steps to cover.
+        # 0. check the parameters
+        param_err = check_hisat2_parameters(params)
+        if len(param_err) > 0:
+            for err in param_err:
+                print(err)
+            raise ValueError("Errors found in parameters, see above for details.")
+
+        # 1. Get hisat2 index from genome.
+        #    a. If it exists in cache, use that.
+        #    b. Otherwise, build it (TODO: make get_hisat2_index function)
+        # 2. Get reads as files in filesystem (DFU function)
+        # 3. Run hisat with index and reads.
+
         #END run_hisat2
 
         # At some point might do deeper type checking...
