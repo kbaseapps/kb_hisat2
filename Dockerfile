@@ -26,6 +26,7 @@ RUN pip install cffi --upgrade \
 COPY ./ /kb/module
 RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
+RUN sh /kb/module/install-hisat.sh
 
 WORKDIR /kb/module
 

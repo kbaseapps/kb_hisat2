@@ -88,45 +88,62 @@ class kb_hisat2Test(unittest.TestCase):
                                                               })
         return assembly_ref
 
+    def load_genbank_file(self, local_file, target_name):
+        gfu = GenomeFileUtil(self.callback_url)
+        genome_ref = gfu.genbank_to_genome({
+            "file": {
+                "path": local_file
+            },
+            "genome_name": target_name,
+            "workspace_name": self.getWsName(),
+            "source": "RefSeq",
+            "genetic_code": 11,
+            "type": "User upload"
+        })
+        return genome_ref.get('genome_ref') # yeah, i know.
+
+    def test_run_hisat2_ok(self):
+        self.assertTrue(True)
+
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    def test_filter_contigs_ok(self):
-
-        # First load a test FASTA file as an KBase Assembly
-        fasta_content = '>seq1 something soemthing asdf\n' \
-                        'agcttttcat\n' \
-                        '>seq2\n' \
-                        'agctt\n' \
-                        '>seq3\n' \
-                        'agcttttcatgg'
-
-        assembly_ref = self.load_fasta_file(os.path.join(self.scratch, 'test1.fasta'),
-                                            'TestAssembly',
-                                            fasta_content)
-
-        # Second, call your implementation
-        ret = self.getImpl().filter_contigs(self.getContext(),
-                                            {'workspace_name': self.getWsName(),
-                                             'assembly_input_ref': assembly_ref,
-                                             'min_length': 10
-                                             })
-
-        # Validate the returned data
-        self.assertEqual(ret[0]['n_initial_contigs'], 3)
-        self.assertEqual(ret[0]['n_contigs_removed'], 1)
-        self.assertEqual(ret[0]['n_contigs_remaining'], 2)
-
-    def test_filter_contigs_err1(self):
-        with self.assertRaises(ValueError) as errorContext:
-            self.getImpl().filter_contigs(self.getContext(),
-                                          {'workspace_name': self.getWsName(),
-                                           'assembly_input_ref': '1/fake/3',
-                                           'min_length': '-10'})
-        self.assertIn('min_length parameter cannot be negative', str(errorContext.exception))
-
-    def test_filter_contigs_err2(self):
-        with self.assertRaises(ValueError) as errorContext:
-            self.getImpl().filter_contigs(self.getContext(),
-                                          {'workspace_name': self.getWsName(),
-                                           'assembly_input_ref': '1/fake/3',
-                                           'min_length': 'ten'})
-        self.assertIn('Cannot parse integer from min_length parameter', str(errorContext.exception))
+    # def test_filter_contigs_ok(self):
+    #
+    #     # First load a test FASTA file as an KBase Assembly
+    #     fasta_content = '>seq1 something soemthing asdf\n' \
+    #                     'agcttttcat\n' \
+    #                     '>seq2\n' \
+    #                     'agctt\n' \
+    #                     '>seq3\n' \
+    #                     'agcttttcatgg'
+    #
+    #     assembly_ref = self.load_fasta_file(os.path.join(self.scratch, 'test1.fasta'),
+    #                                         'TestAssembly',
+    #                                         fasta_content)
+    #
+    #     # Second, call your implementation
+    #     ret = self.getImpl().filter_contigs(self.getContext(),
+    #                                         {'workspace_name': self.getWsName(),
+    #                                          'assembly_input_ref': assembly_ref,
+    #                                          'min_length': 10
+    #                                          })
+    #
+    #     # Validate the returned data
+    #     self.assertEqual(ret[0]['n_initial_contigs'], 3)
+    #     self.assertEqual(ret[0]['n_contigs_removed'], 1)
+    #     self.assertEqual(ret[0]['n_contigs_remaining'], 2)
+    #
+    # def test_filter_contigs_err1(self):
+    #     with self.assertRaises(ValueError) as errorContext:
+    #         self.getImpl().filter_contigs(self.getContext(),
+    #                                       {'workspace_name': self.getWsName(),
+    #                                        'assembly_input_ref': '1/fake/3',
+    #                                        'min_length': '-10'})
+    #     self.assertIn('min_length parameter cannot be negative', str(errorContext.exception))
+    #
+    # def test_filter_contigs_err2(self):
+    #     with self.assertRaises(ValueError) as errorContext:
+    #         self.getImpl().filter_contigs(self.getContext(),
+    #                                       {'workspace_name': self.getWsName(),
+    #                                        'assembly_input_ref': '1/fake/3',
+    #                                        'min_length': 'ten'})
+    #     self.assertIn('Cannot parse integer from min_length parameter', str(errorContext.exception))

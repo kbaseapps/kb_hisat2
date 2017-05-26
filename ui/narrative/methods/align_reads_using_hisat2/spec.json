@@ -161,21 +161,23 @@
     "behavior" : {
         "service-mapping" : {
             "url" : "",
-            "name" : "KBaseRNASeq",
-            "method" : "Hisat2Call",
+            "name" : "kb_hisat2",
+            "method" : "run_hisat2",
             "input_mapping" : [
                 {
                     "narrative_system_variable": "workspace",
-                    "target_property" : "ws_id"
+                    "target_property" : "ws_name"
                 }, {
                     "constant_value"  : 2,
                     "target_property" : "num_threads"
                 }, {
                     "input_parameter" : "sampleset_id",
-                    "target_property" : "sampleset_id"
+                    "target_property" : "sampleset_ref",
+                    "target_type_transform": "resolved-ref"
                 }, {
                     "input_parameter" : "genome_id",
-                    "target_property" : "genome_id"
+                    "target_property" : "genome_ref",
+                    "target_type_transform": "resolved-ref"
                 }, {
                     "input_parameter" : "quality_score",
                     "target_property" : "quality_score"
