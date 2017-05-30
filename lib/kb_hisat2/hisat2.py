@@ -14,7 +14,7 @@ class Hisat2(object):
         idx_manager = Hisat2IndexManager(self.workspace_url, self.callback_url, self.working_dir)
         return idx_manager.get_hisat2_index(object_ref)
 
-    def run_hisat2(self, idx_prefix, object_ref, reads_params, exec_params):
+    def run_hisat2(self, idx_prefix, object_ref, reads_params, input_params):
         """
         Runs HISAT2 on the data with the given parameters.
         If the input is a sample set of multiple samples, then it runs this in a loop
@@ -22,14 +22,16 @@ class Hisat2(object):
 
         Before this is run...
         1. the index file(s) should be present in the file system (in self.working_dir/idx_prefix)
-        2. the reads file(s) should be present in the file system as well (in self.working_dir/reads)
+        2. the reads file(s) should be present in the file system, too (in self.working_dir/reads)
 
         reads_params = list of dicts:
             style = "paired" or "single"
-            file1 = file for single end reads or first file for paired end reads
-            file2 = second file for single end reads
+            file_fwd = file for single end reads or first (forward) file for paired end reads
+            file_rev = second (reverse direction) file for paired end reads
+        object_ref = ...something?
+        input_params = original dictionary of inputs and parameters from the Narrative App. This
+                       gets munged into HISAT2 flags.
         """
-
         # from the inputs, we need the sets of reads.
         # cases:
         #   KBaseSets.ReadsSet             - one or more PairedEndLibary or SingleEndLibrary
@@ -39,9 +41,15 @@ class Hisat2(object):
         #   KBaseFile.SingleEndLibrary     - one reads set input
         #   KBaseFile.PairedEndLibrary     - one paired reads set input
 
+        style = None
+        for reads in reads_params:
 
 
-    def _build_hisat2_cmd(self, idx_prefix, style, files, files_paired):
+        cmd = self._build_hisat2_cmd(idx_prefix, )
+
+
+
+    def _build_hisat2_cmd(self, idx_prefix, style, files, files_paired, output_file, exec_params):
         """
         idx_prefix = file prefix of the index files.
         style = one of "paired" or "single"
@@ -60,8 +68,10 @@ class Hisat2(object):
         ]
 
         if style == "single":
-            cmd.append("-U")
-            cmd.append(",".join(files))
+            cmd.extend([
+                "-U",
+                ",".join(files)
+            ])
         elif style == "paired":
             if len(files) != len(files_paired):
                 raise ValueError("When aligning paired-end reads, there must be equal amounts of reads files for each side.")
@@ -76,5 +86,6 @@ class Hisat2(object):
 
         cmd.extend([
             "-S",
-            "hisat2_alignments"
+            output_file
         ])
+        return cmd

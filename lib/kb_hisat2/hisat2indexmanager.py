@@ -26,20 +26,19 @@ class Hisat2IndexManager(object):
         self.workspace_url = workspace_url
         self.callback_url = callback_url
         self.working_dir = working_dir
-        self.HISAT_PATH = ""
 
     def get_hisat2_index(self, source_ref):
         """
         Builds or fetches the index file(s) as necessary, unpacks them in a directory.
-        Returns a dictionary with the following keys:
-            index_dir = the directory with the index files
-            prefix = the prefix of all files in that dir (to be used as input into HISAT2)
+        Returns a string representing the path and prefix of the index files.
+        E.g. if there are a set of files like "foo.1.ht2", "foo.2.ht2", etc. all in the
+        "my_reads" directory, this will return "my_reads/foo"
         """
-        index_dir = self._fetch_hisat2_index(source_ref, {})
-        if index_dir:
-            return index_dir
-        index_prefix = self._build_hisat2_index(source_ref, {})
-        return index_prefix
+        idx_prefix = self._fetch_hisat2_index(source_ref, {})
+        if idx_prefix:
+            return idx_prefix
+        else:
+            return self._build_hisat2_index(source_ref, {})
 
     def inspect_hisat2_index(self):
         pass

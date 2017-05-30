@@ -9,8 +9,10 @@ from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from KBaseReport.KBaseReportClient import KBaseReport
 from util import (
     check_hisat2_parameters,
-    setup_hisat2
+    setup_hisat2,
+    fetch_reads_from_sampleset
 )
+from kb_hisat2.hisat2 import Hisat2
 #END_HEADER
 
 
@@ -46,6 +48,7 @@ This sample module contains one small method - filter_contigs.
         # Any configuration parameters that are important should be parsed and
         # saved in the constructor.
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.workspace_url = config['workspace-url']
         self.shared_folder = config['scratch']
         self.num_threads = 2
 
@@ -83,15 +86,19 @@ This sample module contains one small method - filter_contigs.
                 print(err)
             raise ValueError("Errors found in parameters, see above for details.")
 
-        hs_runner = Hisat2()
+        hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder)
         # 1. Get hisat2 index from genome.
         #    a. If it exists in cache, use that.
-        #    b. Otherwise, build it (TODO: make get_hisat2_index function)
-        index_info = hs_runner.build_index()
+        #    b. Otherwise, build it
+        idx_prefix = hs_runner.build_index(params['genome_id'])
+
         # 2. Get reads as files in filesystem (DFU function)
+        reads_params = fetch_reads_from_sampleset(params['sampleset_id'],
+                                                  self.workspace_url,
+                                                  self.callback_url)
 
         # 3. Run hisat with index and reads.
-        return_val = hs_runner.run_hisat2()
+        returnVal = hs_runner.run_hisat2(idx_prefix, params['genome_id'], reads_params, params)
 
         #END run_hisat2
 
@@ -101,6 +108,7 @@ This sample module contains one small method - filter_contigs.
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]
+
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

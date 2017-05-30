@@ -1,6 +1,11 @@
+"""
+Some utility functions for the HISAT2 module.
+These mainly deal with manipulating files from Workspace objects.
+There's also some parameter checking and munging functions.
+"""
 from Workspace.WorkspaceClient import Workspace
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
-
+from ReadsUtils.ReadsUtilsClient import ReadsUtils
 
 def check_hisat2_parameters(params):
     """
@@ -13,7 +18,6 @@ def check_hisat2_parameters(params):
 
 def setup_hisat2():
     pass
-
 
 
 def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):
@@ -54,7 +58,9 @@ def fetch_fasta_from_assembly(assembly_ref, ws_url, callback_url):
     From an assembly or contigset, this uses a data file util to build a FASTA file and return the
     path to it.
     """
-    allowed_types = ['KBaseFile.Assembly', 'KBaseGenomeAnnotations.Assembly', 'KBaseGenomes.ContigSet']
+    allowed_types = ['KBaseFile.Assembly',
+                     'KBaseGenomeAnnotations.Assembly',
+                     'KBaseGenomes.ContigSet']
     if not check_ref_type(assembly_ref, allowed_types, ws_url):
         raise ValueError("The given reference {} is invalid for fetching a FASTA file".format(assembly_ref))
     au = AssemblyUtil(callback_url)
@@ -62,6 +68,11 @@ def fetch_fasta_from_assembly(assembly_ref, ws_url, callback_url):
 
 
 def fetch_fasta_from_object(ref, ws_url, callback_url):
+    """
+    From the object given in ref, if it's either a KBaseGenomes.Genome or a
+    KBaseGenomeAnnotations.Assembly, or a KBaseGenomes.ContigSet, this will download and return
+    the path to a FASTA file made from its sequence.
+    """
     obj_type = get_object_type(ref, ws_url)
     if "KBaseGenomes.Genome" in obj_type:
         return fetch_fasta_from_genome(ref, ws_url, callback_url)
@@ -71,7 +82,56 @@ def fetch_fasta_from_object(ref, ws_url, callback_url):
         raise ValueError("Unable to fetch a FASTA file from an object of type {}".format(obj_type))
 
 
+def fetch_reads_from_sampleset(ref, ws_url, callback_url):
+    """
+    From the given Sampleset object ref, fetch the reads objects as FASTA. Returns the list
+    of downloaded files in the following format:
+    [{
+        style: "paired", "single", or "interleaved"
+        file_fwd: path_to_file,
+        file_rev: path_to_file, only if paired-end
+    }]
+    """
+    obj_type = get_object_type(ref, ws_url)
+    file_paths = []
+    if "KBaseSets.ReadsSet" in obj_type:
+        # ReadsSetAPI
+        pass
+    elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
+        pass
+    elif ("KBaseAssembly.SingleEndLibrary" in obj_type or
+          "KBaseFile.SingleEndLibrary" in obj_type or
+          "KBaseAssembly.PairedEndLibrary" in obj_type or
+          "KBaseFile.PairedEndLibrary" in obj_type):
+        # ReadsAPI for single end
+        reads_client = ReadsUtils(callback_url)
+        reads_dl = reads_client.download_reads({"read_libraries": [ref], "interleaved": False})
+        for reads_file in reads_dl.get(ref, {}).get('files', []):
+            ret_reads = {
+                "style": reads_file["type"],
+                "file_fwd": reads_file["fwd"],
+            }
+            if reads_file.get("rev", None) is not None:
+                ret_reads["file_rev"] = reads_file["rev"]
+            file_paths.append(ret_reads)
+    return file_paths
+
+
 def check_ref_type(ref, allowed_types, ws_url):
+    """
+    Validates the object type of ref against the list of allowed types. If it passes, this
+    returns True, otherwise False.
+    Really, all this does is verify that at least one of the strings in allowed_types is
+    a substring of the ref object type name.
+    Ex1:
+    ref = "KBaseGenomes.Genome-4.0"
+    allowed_types = ["assembly", "KBaseFile.Assembly"]
+    returns False
+    Ex2:
+    ref = "KBaseGenomes.Genome-4.0"
+    allowed_types = ["assembly", "genome"]
+    returns True
+    """
     obj_type = get_object_type(ref, ws_url).lower()
     for t in allowed_types:
         if t.lower() in obj_type:
@@ -80,6 +140,11 @@ def check_ref_type(ref, allowed_types, ws_url):
 
 
 def get_object_type(ref, ws_url):
+    """
+    Fetches and returns the typed object name of ref from the given workspace url.
+    If that object doesn't exist, or there's another Workspace error, this raises a
+    RuntimeError exception.
+    """
     ws = Workspace(ws_url)
     info = ws.get_object_info3({'objects': [{'ref': ref}]})
     obj_info = info.get('infos', [[]])[0]
