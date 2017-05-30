@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import unittest
 import os  # noqa: F401
 import json  # noqa: F401
@@ -23,8 +24,11 @@ from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 
-class kb_hisat2Test(unittest.TestCase):
 
+class kb_hisat2Test(unittest.TestCase):
+    """
+    TestCase class for the kb_hisat2 module.
+    """
     @classmethod
     def setUpClass(cls):
         token = environ.get('KB_AUTH_TOKEN', None)
@@ -35,8 +39,8 @@ class kb_hisat2Test(unittest.TestCase):
         for nameval in config.items('kb_hisat2'):
             cls.cfg[nameval[0]] = nameval[1]
         # Getting username from Auth profile for token
-        authServiceUrl = cls.cfg['auth-service-url']
-        auth_client = _KBaseAuth(authServiceUrl)
+        auth_url = cls.cfg['auth-service-url']
+        auth_client = _KBaseAuth(auth_url)
         user_id = auth_client.get_user(token)
         # WARNING: don't call any logging methods on the context object,
         # it'll result in a NoneType error
@@ -61,22 +65,22 @@ class kb_hisat2Test(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
 
-    def getWsClient(self):
+    def get_ws_client(self):
         return self.__class__.wsClient
 
-    def getWsName(self):
+    def get_ws_name(self):
         if hasattr(self.__class__, 'wsName'):
             return self.__class__.wsName
         suffix = int(time.time() * 1000)
         wsName = "test_kb_hisat2_" + str(suffix)
-        ret = self.getWsClient().create_workspace({'workspace': wsName})  # noqa
+        ret = self.get_ws_client().create_workspace({'workspace': wsName})  # noqa
         self.__class__.wsName = wsName
         return wsName
 
-    def getImpl(self):
+    def get_impl(self):
         return self.__class__.serviceImpl
 
-    def getContext(self):
+    def get_context(self):
         return self.__class__.ctx
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
@@ -84,11 +88,12 @@ class kb_hisat2Test(unittest.TestCase):
         f = open(filename, 'w')
         f.write(contents)
         f.close()
-        assemblyUtil = AssemblyUtil(self.callback_url)
-        assembly_ref = assemblyUtil.save_assembly_from_fasta({'file': {'path': filename},
-                                                              'workspace_name': self.getWsName(),
-                                                              'assembly_name': obj_name
-                                                              })
+        assembly_util = AssemblyUtil(self.callback_url)
+        assembly_ref = assembly_util.save_assembly_from_fasta({
+            'file': {'path': filename},
+            'workspace_name': self.get_ws_name(),
+            'assembly_name': obj_name
+        })
         return assembly_ref
 
     def load_genbank_file(self, local_file, target_name):
@@ -98,12 +103,21 @@ class kb_hisat2Test(unittest.TestCase):
                 "path": local_file
             },
             "genome_name": target_name,
-            "workspace_name": self.getWsName(),
+            "workspace_name": self.get_ws_name(),
             "source": "RefSeq",
             "genetic_code": 11,
             "type": "User upload"
         })
         return genome_ref.get('genome_ref') # yeah, i know.
+
+    def load_reads(self, local_file, target_name):
+        pass
+
+    def load_reads_set(self, local_files, target_name):
+        pass
+
+    def load_sample_set(self, local_files, target_name):
+        pass
 
     def test_build_hisat2_index_from_genome_ok(self):
         base_gbk_file = "data/streptococcus_pneumoniae_R6_ref.gbff"
@@ -114,6 +128,40 @@ class kb_hisat2Test(unittest.TestCase):
         print("getting hisat2 index from ref = {}".format(genome_ref))
         idx_prefix = manager.get_hisat2_index(genome_ref)
         self.assertIsNotNone(idx_prefix)
+
+    def test_build_hisat2_index_from_genome_no_assembly(self):
+        pass
+
+    def test_build_hisat2_index_bad_object(self):
+        pass
+
+    def test_build_hisat2_index_no_object(self):
+        pass
+
+    def test_build_hisat2_index_from_assembly_ok(self):
+        pass
+
+    def test_run_hisat2_readsset_ok(self):
+        pass
+
+    def test_run_hisat2_single_end_lib_ok(self):
+        pass
+
+    def test_run_hisat2_paired_end_lib_ok(self):
+        pass
+
+    def test_run_hisat2_missing_genome(self):
+        pass
+
+    def test_run_hisat2_missing_seq(self):
+        pass
+
+    def test_run_hisat2_missing_reads(self):
+        pass
+
+    def test_run_hisat2_parameter_sets(self):
+        pass
+
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
     # def test_filter_contigs_ok(self):

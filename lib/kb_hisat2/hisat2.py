@@ -1,4 +1,6 @@
-from hisat2indexmanager import Hisat2IndexManager
+from __future__ import print_function
+import subprocess
+from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 
 class Hisat2(object):
     def __init__(self, callback_url, workspace_url, working_dir):
@@ -41,25 +43,85 @@ class Hisat2(object):
         #   KBaseFile.SingleEndLibrary     - one reads set input
         #   KBaseFile.PairedEndLibrary     - one paired reads set input
 
+        print("Starting run_hisat2 function.")
+
+        # 1. Set up the file lists and style (paired vs single)
         style = None
+        files_fwd = list()
+        files_rev = list()
+        print("Building reads file parameters...")
         for reads in reads_params:
+            # figure out style, crash if conflict
+            if style is None:
+                style = reads["style"]
+            if style != reads["style"]:
+                raise ValueError("Can only align sets of reads of the same type in one operation - only single end or paired end, not both.")
+            files_fwd.append(reads["file_fwd"])
+            if style == "paired":
+                files_rev.append(reads["file_rev"])
+        print("Done!")
 
+        # 2. Set up a list of parameters to feed into the command builder
+        print("Building HISAT2 execution parameters...")
+        exec_params = list()
+        num_threads = input_params.get('num_threads', 2)
+        exec_params.extend(["-p", num_threads])
+        if input_params.get("quality_score", None) is not None:
+            exec_params.append("--" + input_params["quality_score"])
+        if input_params.get("orientation", None) is not None:
+            exec_params.append("--" + input_params["orientation"])
+        if input_params.get("no_spliced_alignment", False):
+            exec_params.append("--no-spliced-alignment")
+        if input_params.get("transcriptome_mapping_only", False):
+            exec_params.append("--transcriptome-mapping-only")
+        if input_params.get("tailor_alignments", None) is not None:
+            exec_params.append("--" + input_params["tailor_alignments"])
 
-        cmd = self._build_hisat2_cmd(idx_prefix, )
+        kbase2HisatParams = {
+            "skip": "--skip",
+            "trim3": "--trim3",
+            "trim5": "--trim5",
+            "np": "--np",
+            "minins": "--minins",
+            "maxins": "--maxins",
+            "min_intron_length": "--min-intronlen",
+            "max_intron_length": "--max-intronlen",
+        }
+        for param in kbase2HisatParams:
+            if input_params.get(param, None) is not None:
+                exec_params.extend([
+                    kbase2HisatParams[param],
+                    input_params[param]
+                ])
+        print("Done!")
+        print("Building HISAT2 command...")
+        cmd = self._build_hisat2_cmd(idx_prefix,
+                                     style,
+                                     files_fwd,
+                                     files_rev,
+                                     "aligned_reads.sam",
+                                     exec_params)
+        print("Done!")
+        print("Starting HISAT2 with the following command:")
+        print(cmd)
+        p = subprocess.Popen(cmd)
+        ret_code = p.wait()
+        if ret_code != 0:
+            raise RuntimeError('Failed to execute HISAT2 alignment with the given parameters!')
+        print("Done!")
+        print("Assembling output object and report...")
 
-
-
-    def _build_hisat2_cmd(self, idx_prefix, style, files, files_paired, output_file, exec_params):
+    def _build_hisat2_cmd(self, idx_prefix, style, files_fwd, files_rev, output_file, exec_params):
         """
         idx_prefix = file prefix of the index files.
         style = one of "paired" or "single"
-        files = list of file names
-        files_paired = list of paired file names in the case of paired-end reads. Note that this
+        files_fwd = list of file names
+        files_rev = list of paired file names in the case of paired-end reads. Note that this
                        *MUST* be the same length as the first files list, and each element
                        corresponds to the pairing element from the other list.
         examples:
         _build_hisat2_cmd("foo", "single", ["file1.fq", "file2.fq"])
-        _build_hisat2_cmd("bar", "paired", ["fileA_1.fq", "fileB_1.fq"], ["fileA_2.fq", "fileB_2.fq"])
+        _build_hisat2_cmd("z", "paired", ["fileA_1.fq", "fileB_1.fq"], ["fileA_2.fq", "fileB_2.fq"])
         """
         cmd = [
             'hisat2',
@@ -70,20 +132,21 @@ class Hisat2(object):
         if style == "single":
             cmd.extend([
                 "-U",
-                ",".join(files)
+                ",".join(files_fwd)
             ])
         elif style == "paired":
-            if len(files) != len(files_paired):
+            if len(files_fwd) != len(files_rev):
                 raise ValueError("When aligning paired-end reads, there must be equal amounts of reads files for each side.")
             cmd.extend([
                 "-1",
-                ",".join(files),
+                ",".join(files_fwd),
                 "-2",
-                ",".join(files_paired)
+                ",".join(files_rev)
             ])
         else:
             raise ValueError("HISAT2 run style must be one of 'paired' or 'single'")
 
+        cmd.extend(exec_params)
         cmd.extend([
             "-S",
             output_file
