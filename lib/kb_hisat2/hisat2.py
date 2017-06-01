@@ -2,6 +2,7 @@ from __future__ import print_function
 import subprocess
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 
+
 class Hisat2(object):
     def __init__(self, callback_url, workspace_url, working_dir):
         self.callback_url = callback_url
@@ -64,8 +65,7 @@ class Hisat2(object):
         # 2. Set up a list of parameters to feed into the command builder
         print("Building HISAT2 execution parameters...")
         exec_params = list()
-        num_threads = input_params.get('num_threads', 2)
-        exec_params.extend(["-p", num_threads])
+        exec_params.extend(["-p", input_params.get('num_threads', 2)])
         if input_params.get("quality_score", None) is not None:
             exec_params.append("--" + input_params["quality_score"])
         if input_params.get("orientation", None) is not None:
@@ -77,7 +77,7 @@ class Hisat2(object):
         if input_params.get("tailor_alignments", None) is not None:
             exec_params.append("--" + input_params["tailor_alignments"])
 
-        kbase2HisatParams = {
+        kbase_hisat_params = {
             "skip": "--skip",
             "trim3": "--trim3",
             "trim5": "--trim5",
@@ -87,10 +87,10 @@ class Hisat2(object):
             "min_intron_length": "--min-intronlen",
             "max_intron_length": "--max-intronlen",
         }
-        for param in kbase2HisatParams:
+        for param in kbase_hisat_params:
             if input_params.get(param, None) is not None:
                 exec_params.extend([
-                    kbase2HisatParams[param],
+                    kbase_hisat_params[param],
                     input_params[param]
                 ])
         print("Done!")
@@ -110,6 +110,11 @@ class Hisat2(object):
             raise RuntimeError('Failed to execute HISAT2 alignment with the given parameters!')
         print("Done!")
         print("Assembling output object and report...")
+        self._build_hisat2_output()
+        print("Done!")
+
+    def _build_hisat2_output(self):
+        pass
 
     def _build_hisat2_cmd(self, idx_prefix, style, files_fwd, files_rev, output_file, exec_params):
         """

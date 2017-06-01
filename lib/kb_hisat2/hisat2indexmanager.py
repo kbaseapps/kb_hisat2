@@ -12,6 +12,7 @@ are also stored somewhere and associated with the genome ref.
 from __future__ import print_function
 import subprocess
 import uuid
+import os
 from kb_hisat2.util import (
     fetch_fasta_from_object
 )
@@ -46,11 +47,16 @@ class Hisat2IndexManager(object):
     def _build_hisat2_index(self, source_ref, options):
         """
         Runs hisat2-build to build the index files and directory for use in HISAT2.
+        It creates a directory called "kb_hisat2_idx" and places the index files within.
         This also caches them, um, elsewhere so they can be found again.
         """
         # check options and raise ValueError here as needed.
+        if source_ref is None:
+            raise ValueError("Missing reference object needed to build a HISAT2 index.")
         print("Building HISAT2 index files for {}".format(source_ref))
+        idx_dir = "kb_hisat_idx"
         idx_prefix = "kb_hisat_idx-" + str(uuid.uuid4())
+        os.mkdir(os.path.join(self.working_dir, idx_dir))
         try:
             print("Fetching FASTA file from object {}".format(source_ref))
             fasta_file = fetch_fasta_from_object(source_ref, self.workspace_url, self.callback_url)
@@ -69,14 +75,15 @@ class Hisat2IndexManager(object):
         ]
         if options.get('num_threads', None) is not None:
             build_hisat2_cmd.extend(["-p", options['num_threads']])
-        build_hisat2_cmd.append(idx_prefix)
+        idx_prefix_path = os.path.join(self.working_dir, idx_dir, idx_prefix)
+        build_hisat2_cmd.append(idx_prefix_path)
         print("Executing build-hisat2 command: {}".format(build_hisat2_cmd))
         p = subprocess.Popen(build_hisat2_cmd, shell=False)
         ret_code = p.wait()
         if ret_code != 0:
             raise RuntimeError('Failed to generate HISAT2 index files!')
-        print("Done! HISAT2 index files created with prefix {}".format(idx_prefix))
-        return idx_prefix
+        print("Done! HISAT2 index files created with prefix {}".format(idx_prefix_path))
+        return idx_prefix_path
 
 
     def _fetch_hisat2_index(self, source_ref, options):

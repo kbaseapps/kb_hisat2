@@ -16,13 +16,24 @@ except:
 from pprint import pprint  # noqa: F401
 
 from biokbase.workspace.client import Workspace as workspaceService
-from GenomeFileUtil.GenomeFileUtilClient import GenomeFileUtil
 from kb_hisat2.kb_hisat2Impl import kb_hisat2
 from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 
-from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
+from util import (
+    load_fasta_file,
+    load_genbank_file,
+    load_reads,
+    load_reads_set,
+    load_sample_set
+)
+
+TEST_GBK_FILE = os.path.join("data", "at_chrom1_section.gbk")
+TEST_READS_WT_1_FILE = os.path.join("data", "extracted_WT_rep1.fastq")
+TEST_READS_WT_2_FILE = os.path.join("data", "extracted_WT_rep2.fastq")
+TEST_READS_HY5_1_FILE = os.path.join("data", "extracted_hy5_rep1.fastq")
+TEST_READS_HY5_2_FILE = os.path.join("data", "extracted_hy5_rep2.fastq")
 
 
 class kb_hisat2Test(unittest.TestCase):
@@ -54,28 +65,55 @@ class kb_hisat2Test(unittest.TestCase):
                         }],
                         'authenticated': 1})
         cls.wsURL = cls.cfg['workspace-url']
-        cls.wsClient = workspaceService(cls.wsURL)
+        cls.ws_client = workspaceService(cls.wsURL)
         cls.serviceImpl = kb_hisat2(cls.cfg)
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
 
+        # set up the test workspace
+        cls.ws_name = "test_kb_hisat2_{}".format(int(time.time() * 1000))
+        cls.ws_client.create_workspace({"workspace": cls.ws_name})
+
+        # Upload test genome
+        gbk_file = os.path.join(cls.scratch, os.path.basename(TEST_GBK_FILE))
+        shutil.copy(TEST_GBK_FILE, gbk_file)
+        cls.genome_ref = load_genbank_file(
+            cls.callback_url, cls.ws_name, gbk_file, "my_test_genome"
+        )
+        # Upload test reads - SingleEnd
+        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_WT_1_FILE))
+        shutil.copy(TEST_READS_WT_1_FILE, reads_file)
+        cls.single_end_ref_wt_1 = load_reads(
+            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_1"
+        )
+        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_WT_2_FILE))
+        shutil.copy(TEST_READS_WT_2_FILE, reads_file)
+        cls.single_end_ref_wt_2 = load_reads(
+            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_2"
+        )
+        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_1_FILE))
+        shutil.copy(TEST_READS_HY5_1_FILE, reads_file)
+        cls.single_end_ref_hy5_1 = load_reads(
+            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_hy5_1"
+        )
+        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_2_FILE))
+        shutil.copy(TEST_READS_HY5_2_FILE, reads_file)
+        cls.single_end_ref_hy5_2 = load_reads(
+            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_hy5_2"
+        )
+        # Upload test reads - PairedEnd
+
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):
-            cls.wsClient.delete_workspace({'workspace': cls.wsName})
+            cls.ws_client.delete_workspace({'workspace': cls.ws_name})
             print('Test workspace was deleted')
 
     def get_ws_client(self):
-        return self.__class__.wsClient
+        return self.__class__.ws_client
 
     def get_ws_name(self):
-        if hasattr(self.__class__, 'wsName'):
-            return self.__class__.wsName
-        suffix = int(time.time() * 1000)
-        wsName = "test_kb_hisat2_" + str(suffix)
-        ret = self.get_ws_client().create_workspace({'workspace': wsName})  # noqa
-        self.__class__.wsName = wsName
-        return wsName
+        return self.__class__.ws_name
 
     def get_impl(self):
         return self.__class__.serviceImpl
@@ -83,60 +121,27 @@ class kb_hisat2Test(unittest.TestCase):
     def get_context(self):
         return self.__class__.ctx
 
-    # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    def load_fasta_file(self, filename, obj_name, contents):
-        f = open(filename, 'w')
-        f.write(contents)
-        f.close()
-        assembly_util = AssemblyUtil(self.callback_url)
-        assembly_ref = assembly_util.save_assembly_from_fasta({
-            'file': {'path': filename},
-            'workspace_name': self.get_ws_name(),
-            'assembly_name': obj_name
-        })
-        return assembly_ref
 
-    def load_genbank_file(self, local_file, target_name):
-        gfu = GenomeFileUtil(self.callback_url)
-        genome_ref = gfu.genbank_to_genome({
-            "file": {
-                "path": local_file
-            },
-            "genome_name": target_name,
-            "workspace_name": self.get_ws_name(),
-            "source": "RefSeq",
-            "genetic_code": 11,
-            "type": "User upload"
-        })
-        return genome_ref.get('genome_ref') # yeah, i know.
-
-    def load_reads(self, local_file, target_name):
-        pass
-
-    def load_reads_set(self, local_files, target_name):
-        pass
-
-    def load_sample_set(self, local_files, target_name):
-        pass
-
+    @unittest.skip("skipping index build")
     def test_build_hisat2_index_from_genome_ok(self):
-        base_gbk_file = "data/streptococcus_pneumoniae_R6_ref.gbff"
-        gbk_file = os.path.join(self.scratch, os.path.basename(base_gbk_file))
-        shutil.copy(base_gbk_file, gbk_file)
-        genome_ref = self.load_genbank_file(gbk_file, 'my_test_genome')
         manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
-        print("getting hisat2 index from ref = {}".format(genome_ref))
-        idx_prefix = manager.get_hisat2_index(genome_ref)
-        self.assertIsNotNone(idx_prefix)
+        idx_prefix = manager.get_hisat2_index(self.genome_ref)
+        self.assertIn("kb_hisat2_idx", idx_prefix)
 
     def test_build_hisat2_index_from_genome_no_assembly(self):
         pass
 
     def test_build_hisat2_index_bad_object(self):
-        pass
+        manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
+        with self.assertRaises(ValueError) as err:
+            manager.get_hisat2_index(self.single_end_ref_wt_1)
+            self.assertIn("Incorrect object type", err.exception)
 
     def test_build_hisat2_index_no_object(self):
-        pass
+        manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
+        with self.assertRaises(ValueError) as err:
+            manager.get_hisat2_index(self.single_end_ref_wt_1)
+            self.assertIn("Missing reference object", err.exception)
 
     def test_build_hisat2_index_from_assembly_ok(self):
         pass
@@ -145,7 +150,23 @@ class kb_hisat2Test(unittest.TestCase):
         pass
 
     def test_run_hisat2_single_end_lib_ok(self):
-        pass
+        res = self.get_impl().run_hisat2(self.get_context(), {
+            "ws_name": self.ws_name,
+            "sampleset_ref": self.single_end_ref_wt_1,
+            "genome_ref": self.genome_ref,
+            "num_threads": 2,
+            "quality_score": "phred33",
+            "skip": 0,
+            "trim3": 0,
+            "trim5": 0,
+            "np": 1,
+            "min_intron_length": 20,
+            "max_intron_length": 500000,
+            "no_spliced_alignment": 0,
+            "transcriptome_mapping_only": 0
+        })
+        self.assertIsNotNone(res)
+        print("Done with HISAT2 run! {}".format(res))
 
     def test_run_hisat2_paired_end_lib_ok(self):
         pass

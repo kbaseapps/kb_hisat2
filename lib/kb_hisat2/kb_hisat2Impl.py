@@ -90,15 +90,15 @@ This sample module contains one small method - filter_contigs.
         # 1. Get hisat2 index from genome.
         #    a. If it exists in cache, use that.
         #    b. Otherwise, build it
-        idx_prefix = hs_runner.build_index(params['genome_id'])
+        idx_prefix = hs_runner.build_index(params['genome_ref'])
 
         # 2. Get reads as files in filesystem (DFU function)
-        reads_params = fetch_reads_from_sampleset(params['sampleset_id'],
+        reads_params = fetch_reads_from_sampleset(params['sampleset_ref'],
                                                   self.workspace_url,
                                                   self.callback_url)
 
         # 3. Run hisat with index and reads.
-        returnVal = hs_runner.run_hisat2(idx_prefix, params['genome_id'], reads_params, params)
+        returnVal = hs_runner.run_hisat2(idx_prefix, params['genome_ref'], reads_params, params)
 
         #END run_hisat2
 
