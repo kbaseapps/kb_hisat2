@@ -23,7 +23,6 @@ class kb_hisat2:
 
     Module Description:
     A KBase module: kb_hisat2
-This sample module contains one small method - filter_contigs.
     '''
 
     ######## WARNING FOR GEVENT USERS ####### noqa
@@ -54,7 +53,6 @@ This sample module contains one small method - filter_contigs.
 
         #END_CONSTRUCTOR
 
-
     def run_hisat2(self, ctx, params):
         """
         :param params: instance of type "Hisat2Params" -> structure:
@@ -78,6 +76,8 @@ This sample module contains one small method - filter_contigs.
         # return variables are: returnVal
         #BEGIN run_hisat2
 
+        returnVal = dict()
+
         # steps to cover.
         # 0. check the parameters
         param_err = check_hisat2_parameters(params)
@@ -90,16 +90,24 @@ This sample module contains one small method - filter_contigs.
         # 1. Get hisat2 index from genome.
         #    a. If it exists in cache, use that.
         #    b. Otherwise, build it
-        idx_prefix = hs_runner.build_index(params['genome_ref'])
+        idx_prefix = hs_runner.build_index(params["genome_ref"])
 
         # 2. Get reads as files in filesystem (DFU function)
-        reads_params = fetch_reads_from_sampleset(params['sampleset_ref'],
+        reads_params = fetch_reads_from_sampleset(params["sampleset_ref"],
                                                   self.workspace_url,
                                                   self.callback_url)
+        pprint(reads_params)
+        pprint(params)
+        print(idx_prefix)
+        print(params["genome_ref"])
 
         # 3. Run hisat with index and reads.
-        returnVal = hs_runner.run_hisat2(idx_prefix, params['genome_ref'], reads_params, params)
-
+        alignments = dict()
+        for idx, reads in enumerate(reads_params):
+            output_file = "aligned_reads_{}".format(idx)
+            alignments[reads["object_ref"]] = hs_runner.run_hisat2(
+                idx_prefix, reads, params, output_file=output_file
+            )
         #END run_hisat2
 
         # At some point might do deeper type checking...

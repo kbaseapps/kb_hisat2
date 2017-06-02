@@ -17,6 +17,7 @@ from kb_hisat2.util import (
     fetch_fasta_from_object
 )
 
+
 class Hisat2IndexManager(object):
     """
     Manages HISAT2 index files built from a FASTA file. Mainly, this constructs the indexes, or
@@ -56,7 +57,10 @@ class Hisat2IndexManager(object):
         print("Building HISAT2 index files for {}".format(source_ref))
         idx_dir = "kb_hisat_idx"
         idx_prefix = "kb_hisat_idx-" + str(uuid.uuid4())
-        os.mkdir(os.path.join(self.working_dir, idx_dir))
+        try:
+            os.mkdir(os.path.join(self.working_dir, idx_dir))
+        except OSError as err:
+            print("Ignoring error for already existing {} directory".format(idx_dir))
         try:
             print("Fetching FASTA file from object {}".format(source_ref))
             fasta_file = fetch_fasta_from_object(source_ref, self.workspace_url, self.callback_url)
@@ -67,7 +71,8 @@ class Hisat2IndexManager(object):
 
         fasta_path = fasta_file.get("path", None)
         if fasta_path is None:
-            raise RuntimeError("FASTA file fetched from object {} doesn't seem to exist!".format(source_ref))
+            raise RuntimeError("FASTA file fetched from object {} doesn't seem to "
+                               "exist!".format(source_ref))
         build_hisat2_cmd = [
             "hisat2-build",
             "-f",

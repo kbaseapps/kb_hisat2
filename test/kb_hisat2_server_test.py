@@ -86,21 +86,21 @@ class kb_hisat2Test(unittest.TestCase):
         cls.single_end_ref_wt_1 = load_reads(
             cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_1"
         )
-        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_WT_2_FILE))
-        shutil.copy(TEST_READS_WT_2_FILE, reads_file)
-        cls.single_end_ref_wt_2 = load_reads(
-            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_2"
-        )
-        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_1_FILE))
-        shutil.copy(TEST_READS_HY5_1_FILE, reads_file)
-        cls.single_end_ref_hy5_1 = load_reads(
-            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_hy5_1"
-        )
-        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_2_FILE))
-        shutil.copy(TEST_READS_HY5_2_FILE, reads_file)
-        cls.single_end_ref_hy5_2 = load_reads(
-            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_hy5_2"
-        )
+        # reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_WT_2_FILE))
+        # shutil.copy(TEST_READS_WT_2_FILE, reads_file)
+        # cls.single_end_ref_wt_2 = load_reads(
+        #     cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_2"
+        # )
+        # reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_1_FILE))
+        # shutil.copy(TEST_READS_HY5_1_FILE, reads_file)
+        # cls.single_end_ref_hy5_1 = load_reads(
+        #     cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_hy5_1"
+        # )
+        # reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_2_FILE))
+        # shutil.copy(TEST_READS_HY5_2_FILE, reads_file)
+        # cls.single_end_ref_hy5_2 = load_reads(
+        #     cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_hy5_2"
+        # )
         # Upload test reads - PairedEnd
 
     @classmethod

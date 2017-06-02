@@ -3,9 +3,12 @@ Some utility functions for the HISAT2 module.
 These mainly deal with manipulating files from Workspace objects.
 There's also some parameter checking and munging functions.
 """
+from __future__ import print_function
+from pprint import pprint
 from Workspace.WorkspaceClient import Workspace
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from ReadsUtils.ReadsUtilsClient import ReadsUtils
+
 
 def check_hisat2_parameters(params):
     """
@@ -15,6 +18,7 @@ def check_hisat2_parameters(params):
     """
     errors = list()
     return errors
+
 
 def setup_hisat2():
     pass
@@ -50,7 +54,8 @@ def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):
     if len(assembly_ref) == 1:
         return fetch_fasta_from_assembly(assembly_ref[0], ws_url, callback_url)
     else:
-        raise ValueError("Multiple assemblies found associated with the given genome ref {}! Unable to continue.")
+        raise ValueError("Multiple assemblies found associated with the given genome ref {}! "
+                         "Unable to continue.")
 
 
 def fetch_fasta_from_assembly(assembly_ref, ws_url, callback_url):
@@ -62,7 +67,8 @@ def fetch_fasta_from_assembly(assembly_ref, ws_url, callback_url):
                      'KBaseGenomeAnnotations.Assembly',
                      'KBaseGenomes.ContigSet']
     if not check_ref_type(assembly_ref, allowed_types, ws_url):
-        raise ValueError("The given reference {} is invalid for fetching a FASTA file".format(assembly_ref))
+        raise ValueError("The reference {} cannot be used to fetch a FASTA file".format(
+            assembly_ref))
     au = AssemblyUtil(callback_url)
     return au.get_assembly_as_fasta({'ref': assembly_ref})
 
@@ -89,31 +95,41 @@ def fetch_reads_from_sampleset(ref, ws_url, callback_url):
     [{
         style: "paired", "single", or "interleaved"
         file_fwd: path_to_file,
-        file_rev: path_to_file, only if paired-end
+        file_rev: path_to_file, only if paired-end,
+        object_ref: reads reference, for downstream convenience, especially if this is in a set.
     }]
     """
+    print("Fetching reads from workspace object {}".format(ref))
+
     obj_type = get_object_type(ref, ws_url)
     file_paths = []
     if "KBaseSets.ReadsSet" in obj_type:
         # ReadsSetAPI
+        print("Fetching reads from a KBaseSets.ReadsSet")
         pass
     elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
+        print("Fetching reads from a KBaseRNASeq.RNASeqSampleSet")
         pass
     elif ("KBaseAssembly.SingleEndLibrary" in obj_type or
           "KBaseFile.SingleEndLibrary" in obj_type or
           "KBaseAssembly.PairedEndLibrary" in obj_type or
           "KBaseFile.PairedEndLibrary" in obj_type):
         # ReadsAPI for single end
+        print("Fetching reads from a {}".format(obj_type))
         reads_client = ReadsUtils(callback_url)
-        reads_dl = reads_client.download_reads({"read_libraries": [ref], "interleaved": False})
-        for reads_file in reads_dl.get(ref, {}).get('files', []):
-            ret_reads = {
-                "style": reads_file["type"],
-                "file_fwd": reads_file["fwd"],
-            }
-            if reads_file.get("rev", None) is not None:
-                ret_reads["file_rev"] = reads_file["rev"]
-            file_paths.append(ret_reads)
+        reads_dl = reads_client.download_reads({"read_libraries": [ref]})
+        pprint(reads_dl)
+        reads_files = reads_dl['files'][ref]['files']
+        ret_reads = {
+            "object_ref": ref,
+            "style": reads_files["type"],
+            "file_fwd": reads_files["fwd"],
+        }
+        if reads_files.get("rev", None) is not None:
+            ret_reads["file_rev"] = reads_files["rev"]
+        file_paths.append(ret_reads)
+    else:
+        raise ValueError("Unable to fetch reads from a {} typed object".format(obj_type))
     return file_paths
 
 
@@ -149,5 +165,6 @@ def get_object_type(ref, ws_url):
     info = ws.get_object_info3({'objects': [{'ref': ref}]})
     obj_info = info.get('infos', [[]])[0]
     if len(obj_info) == 0:
-        raise RuntimeError("An error occurred while fetching type info from the Workspace. No information returned for reference {}".format(ref))
+        raise RuntimeError("An error occurred while fetching type info from the Workspace. "
+                           "No information returned for reference {}".format(ref))
     return obj_info[2]
