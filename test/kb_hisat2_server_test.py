@@ -103,9 +103,24 @@ class kb_hisat2Test(unittest.TestCase):
         # )
         # Upload test reads - PairedEnd
 
+        # Upload test ReadsSet of single end reads
+        f_list = list()
+        for idx, f in enumerate([TEST_READS_HY5_1_FILE, TEST_READS_HY5_2_FILE]):
+            f_abs = os.path.join(cls.scratch, os.path.basename(f))
+            shutil.copy(f, f_abs)
+            f_list.append({
+                "file_fwd": f_abs,
+                "target_name": "se_reads_{}".format(idx),
+                "tech": "Illumina"
+            })
+        cls.single_end_reads_set = load_reads_set(
+            cls.callback_url, cls.ws_name, f_list, "se_reads_set"
+        )
+        print("READS SET: {}".format(cls.single_end_reads_set))
+
     @classmethod
     def tearDownClass(cls):
-        if hasattr(cls, 'wsName'):
+        if hasattr(cls, 'ws_name'):
             cls.ws_client.delete_workspace({'workspace': cls.ws_name})
             print('Test workspace was deleted')
 
@@ -120,7 +135,6 @@ class kb_hisat2Test(unittest.TestCase):
 
     def get_context(self):
         return self.__class__.ctx
-
 
     @unittest.skip("skipping index build")
     def test_build_hisat2_index_from_genome_ok(self):
@@ -147,8 +161,25 @@ class kb_hisat2Test(unittest.TestCase):
         pass
 
     def test_run_hisat2_readsset_ok(self):
-        pass
+        res = self.get_impl().run_hisat2(self.get_context(), {
+            "ws_name": self.ws_name,
+            "sampleset_ref": self.single_end_reads_set,
+            "genome_ref": self.genome_ref,
+            "num_threads": 2,
+            "quality_score": "phred33",
+            "skip": 0,
+            "trim3": 0,
+            "trim5": 0,
+            "np": 1,
+            "min_intron_length": 20,
+            "max_intron_length": 500000,
+            "no_spliced_alignment": 0,
+            "transcriptome_mapping_only": 0
+        })
+        self.assertIsNotNone(res)
+        print("Done with HISAT2 run! {}".format(res))
 
+    @unittest.skip("skipping single end reads run.")
     def test_run_hisat2_single_end_lib_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,

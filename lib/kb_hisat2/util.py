@@ -8,6 +8,7 @@ from pprint import pprint
 from Workspace.WorkspaceClient import Workspace
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from ReadsUtils.ReadsUtilsClient import ReadsUtils
+from SetAPI.SetAPIClient import SetAPI
 
 
 def check_hisat2_parameters(params):
@@ -106,7 +107,13 @@ def fetch_reads_from_sampleset(ref, ws_url, callback_url):
     if "KBaseSets.ReadsSet" in obj_type:
         # ReadsSetAPI
         print("Fetching reads from a KBaseSets.ReadsSet")
-        pass
+        set_client = SetAPI(callback_url)
+        reads_set = set_client.get_reads_set_v1({
+            "ref": ref,
+            "include_item_info": 0
+        })
+        for reads in reads_set["data"]["items"]:
+            file_paths.extend(fetch_reads_from_sampleset(reads["ref"], ws_url, callback_url))
     elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
         print("Fetching reads from a KBaseRNASeq.RNASeqSampleSet")
         pass

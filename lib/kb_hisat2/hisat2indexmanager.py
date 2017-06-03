@@ -90,9 +90,9 @@ class Hisat2IndexManager(object):
         print("Done! HISAT2 index files created with prefix {}".format(idx_prefix_path))
         return idx_prefix_path
 
-
     def _fetch_hisat2_index(self, source_ref, options):
         """
         Fetches HISAT2 indexes from a remote location, if they're available.
         """
+        # TODO: insert fetch code from file cache HERE.
         return None

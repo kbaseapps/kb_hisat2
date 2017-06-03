@@ -155,7 +155,7 @@ class Hisat2(object):
             "file_path": alignment_file,
             "library_type": reads_info["style"], # single or paired end,
             "condition": "some_condition",
-            "gneome_id": input_params["genome_ref"],
+            "genome_id": input_params["genome_ref"],
             "read_sample_id": reads_info["object_ref"],
             "aligned_using": "hisat2",
             "aligner_version": HISAT_VERSION,
