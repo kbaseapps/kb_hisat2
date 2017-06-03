@@ -5,6 +5,7 @@ from GenomeFileUtil.GenomeFileUtilClient import GenomeFileUtil
 from ReadsUtils.ReadsUtilsClient import ReadsUtils
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from SetAPI.SetAPIClient import SetAPI
+from Workspace.WorkspaceClient import Workspace
 
 
 def load_fasta_file(callback_url, ws_name, filename, obj_name, contents):
@@ -60,23 +61,15 @@ def load_reads(callback_url, ws_name, tech, file_fwd, file_rev, target_name):
     return reads_ref["obj_ref"]
 
 
-def load_reads_set(callback_url, ws_name, local_files, target_name):
+def load_reads_set(callback_url, ws_name, reads_refs, target_name):
     """
-    Upload a set of reads as a ReadsSet.
-    each file in local_files is a structure:
-    {
-        file_fwd = path_to_file,
-        file_rev = path_to_reverse_file,
-        tech = sequencing tech,
-        target_name = name of uploaded reads object
-    }
+    Combine a list of reads references into a ReadsSet.
     if file_rev is None or not a present key, then this is treated as a single end reads.
     """
     reads_set = list()
-    for reads in local_files:
+    for ref in reads_refs:
         reads_set.append({
-            "ref": load_reads(callback_url, ws_name, reads["tech"], reads["file_fwd"],
-                              reads.get("file_rev", None), reads["target_name"]),
+            "ref": ref,
             "label": "a_reads_object"
         })
     set_client = SetAPI(callback_url)
@@ -91,8 +84,32 @@ def load_reads_set(callback_url, ws_name, local_files, target_name):
     return set_output["set_ref"]
 
 
-def load_sample_set(self, local_files, target_name):
+def load_sample_set(workspace_url, ws_name, reads_refs, library_type, target_name):
     """
     Upload a set of files as a sample set.
+    library_type = "SingleEnd" or "PairedEnd"
     """
-    return None
+    sample_set = {
+        "Library_type": library_type,
+        "domain": "Prokaryotes",
+        "num_samples": len(reads_refs),
+        "platform": None,
+        "publication_id": None,
+        "sample_ids": reads_refs,
+        "sampleset_desc": None,
+        "sampleset_id": target_name,
+        "source": None
+    }
+    sample_set["condition"] = ["wt" for i in range(len(reads_refs))]
+    ws_client = Workspace(workspace_url)
+    ss_obj = ws_client.save_objects({
+        "workspace": ws_name,
+        "objects": [{
+            "type": "KBaseRNASeq.RNASeqSampleSet",
+            "data": sample_set,
+            "name": target_name,
+            "provenance": [{"input_ws_objects": reads_refs}]
+        }]
+    })
+    ss_ref = "{}/{}/{}".format(ss_obj[0][6], ss_obj[0][0], ss_obj[0][4])
+    return ss_ref

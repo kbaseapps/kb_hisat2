@@ -86,11 +86,11 @@ class kb_hisat2Test(unittest.TestCase):
         cls.single_end_ref_wt_1 = load_reads(
             cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_1"
         )
-        # reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_WT_2_FILE))
-        # shutil.copy(TEST_READS_WT_2_FILE, reads_file)
-        # cls.single_end_ref_wt_2 = load_reads(
-        #     cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_2"
-        # )
+        reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_WT_2_FILE))
+        shutil.copy(TEST_READS_WT_2_FILE, reads_file)
+        cls.single_end_ref_wt_2 = load_reads(
+            cls.callback_url, cls.ws_name, "Illumina", reads_file, None, "reads_wt_2"
+        )
         # reads_file = os.path.join(cls.scratch, os.path.basename(TEST_READS_HY5_1_FILE))
         # shutil.copy(TEST_READS_HY5_1_FILE, reads_file)
         # cls.single_end_ref_hy5_1 = load_reads(
@@ -104,19 +104,18 @@ class kb_hisat2Test(unittest.TestCase):
         # Upload test reads - PairedEnd
 
         # Upload test ReadsSet of single end reads
-        f_list = list()
-        for idx, f in enumerate([TEST_READS_HY5_1_FILE, TEST_READS_HY5_2_FILE]):
-            f_abs = os.path.join(cls.scratch, os.path.basename(f))
-            shutil.copy(f, f_abs)
-            f_list.append({
-                "file_fwd": f_abs,
-                "target_name": "se_reads_{}".format(idx),
-                "tech": "Illumina"
-            })
+        reads_refs = [
+            cls.single_end_ref_wt_1,
+            cls.single_end_ref_wt_2
+        ]
         cls.single_end_reads_set = load_reads_set(
-            cls.callback_url, cls.ws_name, f_list, "se_reads_set"
+            cls.callback_url, cls.ws_name, reads_refs, "se_reads_set"
         )
-        print("READS SET: {}".format(cls.single_end_reads_set))
+
+        # Upload test SampleSet of single end reads
+        cls.single_end_sampleset = load_sample_set(
+            cls.wsURL, cls.ws_name, reads_refs, "SingleEnd", "se_sampleset"
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -160,6 +159,7 @@ class kb_hisat2Test(unittest.TestCase):
     def test_build_hisat2_index_from_assembly_ok(self):
         pass
 
+    @unittest.skip("skipping readsset run")
     def test_run_hisat2_readsset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
@@ -184,6 +184,25 @@ class kb_hisat2Test(unittest.TestCase):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
             "sampleset_ref": self.single_end_ref_wt_1,
+            "genome_ref": self.genome_ref,
+            "num_threads": 2,
+            "quality_score": "phred33",
+            "skip": 0,
+            "trim3": 0,
+            "trim5": 0,
+            "np": 1,
+            "min_intron_length": 20,
+            "max_intron_length": 500000,
+            "no_spliced_alignment": 0,
+            "transcriptome_mapping_only": 0
+        })
+        self.assertIsNotNone(res)
+        print("Done with HISAT2 run! {}".format(res))
+
+    def test_run_hisat2_sampleset_ok(self):
+        res = self.get_impl().run_hisat2(self.get_context(), {
+            "ws_name": self.ws_name,
+            "sampleset_ref": self.single_end_sampleset,
             "genome_ref": self.genome_ref,
             "num_threads": 2,
             "quality_score": "phred33",

@@ -153,7 +153,7 @@ class Hisat2(object):
         align_upload_params = {
             "ws_id_or_name": input_params["ws_name"],
             "file_path": alignment_file,
-            "library_type": reads_info["style"], # single or paired end,
+            "library_type": reads_info["style"],  # single or paired end,
             "condition": "some_condition",
             "genome_id": input_params["genome_ref"],
             "read_sample_id": reads_info["object_ref"],

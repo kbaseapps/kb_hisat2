@@ -10,7 +10,8 @@ from KBaseReport.KBaseReportClient import KBaseReport
 from util import (
     check_hisat2_parameters,
     setup_hisat2,
-    fetch_reads_from_sampleset
+    fetch_reads_refs_from_sampleset,
+    fetch_reads_from_reference
 )
 from kb_hisat2.hisat2 import Hisat2
 #END_HEADER
@@ -92,22 +93,23 @@ class kb_hisat2:
         #    b. Otherwise, build it
         idx_prefix = hs_runner.build_index(params["genome_ref"])
 
-        # 2. Get reads as files in filesystem (DFU function)
-        reads_params = fetch_reads_from_sampleset(params["sampleset_ref"],
-                                                  self.workspace_url,
-                                                  self.callback_url)
-        pprint(reads_params)
-        pprint(params)
-        print(idx_prefix)
-        print(params["genome_ref"])
+        # 2. Get list of reads object references
+        reads_refs = fetch_reads_refs_from_sampleset(
+            params["sampleset_ref"], self.workspace_url, self.callback_url
+        )
 
         # 3. Run hisat with index and reads.
         alignments = dict()
-        for idx, reads in enumerate(reads_params):
+        for idx, reads_ref in enumerate(reads_refs):
+            reads = fetch_reads_from_reference(reads_ref, self.callback_url)
             output_file = "aligned_reads_{}".format(idx)
-            alignments[reads["object_ref"]] = hs_runner.run_hisat2(
+            alignments[reads_ref] = hs_runner.run_hisat2(
                 idx_prefix, reads, params, output_file=output_file
             )
+            # delete reads file
+            os.remove(reads["file_fwd"])
+            if "file_rev" in reads:
+                os.remove(reads["file_rev"])
         #END run_hisat2
 
         # At some point might do deeper type checking...

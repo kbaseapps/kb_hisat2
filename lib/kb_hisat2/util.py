@@ -89,40 +89,55 @@ def fetch_fasta_from_object(ref, ws_url, callback_url):
         raise ValueError("Unable to fetch a FASTA file from an object of type {}".format(obj_type))
 
 
-def fetch_reads_from_sampleset(ref, ws_url, callback_url):
+def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
     """
-    From the given Sampleset object ref, fetch the reads objects as FASTA. Returns the list
-    of downloaded files in the following format:
-    [{
-        style: "paired", "single", or "interleaved"
-        file_fwd: path_to_file,
-        file_rev: path_to_file, only if paired-end,
-        object_ref: reads reference, for downstream convenience, especially if this is in a set.
-    }]
-    """
-    print("Fetching reads from workspace object {}".format(ref))
+    From the given object ref, return a list of all reads objects that are a part of that
+    object. E.g., if ref is a ReadsSet, return a list of all PairedEndLibrary or SingleEndLibrary
+    refs that are a member of that ReadsSet.
 
+    If ref is already a Reads library, just returns a list with ref as a single element.
+    """
     obj_type = get_object_type(ref, ws_url)
-    file_paths = []
+    refs = list()
     if "KBaseSets.ReadsSet" in obj_type:
-        # ReadsSetAPI
-        print("Fetching reads from a KBaseSets.ReadsSet")
+        print("Looking up reads references in ReadsSet object")
         set_client = SetAPI(callback_url)
         reads_set = set_client.get_reads_set_v1({
             "ref": ref,
             "include_item_info": 0
         })
         for reads in reads_set["data"]["items"]:
-            file_paths.extend(fetch_reads_from_sampleset(reads["ref"], ws_url, callback_url))
+            refs.append(reads["ref"])
     elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
-        print("Fetching reads from a KBaseRNASeq.RNASeqSampleSet")
-        pass
+        print("Looking up reads references in RNASeqSampleSet object")
+        ws = Workspace(ws_url)
+        sample_set = ws.get_objects2({"objects": [{"ref": ref}]})["data"][0]["data"]
+        refs = sample_set["sample_ids"]
     elif ("KBaseAssembly.SingleEndLibrary" in obj_type or
           "KBaseFile.SingleEndLibrary" in obj_type or
           "KBaseAssembly.PairedEndLibrary" in obj_type or
           "KBaseFile.PairedEndLibrary" in obj_type):
-        # ReadsAPI for single end
-        print("Fetching reads from a {}".format(obj_type))
+        refs.append(ref)
+    else:
+        raise ValueError("Unable to fetch reads reference from object {} "
+                         "which is a {}".format(ref, obj_type))
+
+    return refs
+
+
+def fetch_reads_from_reference(ref, callback_url):
+    """
+    Fetch a FASTQ file (or 2 for paired-end) from a reads reference.
+    Returns the following structure:
+    {
+        "style": "paired", "single", or "interleaved",
+        "file_fwd": path_to_file,
+        "file_rev": path_to_file, only if paired end,
+        "object_ref": reads reference for downstream convenience.
+    }
+    """
+    try:
+        print("Fetching reads from object {}".format(ref))
         reads_client = ReadsUtils(callback_url)
         reads_dl = reads_client.download_reads({"read_libraries": [ref]})
         pprint(reads_dl)
@@ -134,10 +149,10 @@ def fetch_reads_from_sampleset(ref, ws_url, callback_url):
         }
         if reads_files.get("rev", None) is not None:
             ret_reads["file_rev"] = reads_files["rev"]
-        file_paths.append(ret_reads)
-    else:
-        raise ValueError("Unable to fetch reads from a {} typed object".format(obj_type))
-    return file_paths
+        return ret_reads
+    except:
+        print("Unable to fetch a file from expected reads object {}".format(ref))
+        raise
 
 
 def check_ref_type(ref, allowed_types, ws_url):
