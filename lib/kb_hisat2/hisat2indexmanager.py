@@ -59,13 +59,13 @@ class Hisat2IndexManager(object):
         idx_prefix = "kb_hisat_idx-" + str(uuid.uuid4())
         try:
             os.mkdir(os.path.join(self.working_dir, idx_dir))
-        except OSError as err:
+        except OSError:
             print("Ignoring error for already existing {} directory".format(idx_dir))
         try:
             print("Fetching FASTA file from object {}".format(source_ref))
             fasta_file = fetch_fasta_from_object(source_ref, self.workspace_url, self.callback_url)
             print("Done fetching FASTA file! Path = {}".format(fasta_file.get("path", None)))
-        except ValueError as err:
+        except ValueError:
             print("Incorrect object type for fetching a FASTA file!")
             raise
 
