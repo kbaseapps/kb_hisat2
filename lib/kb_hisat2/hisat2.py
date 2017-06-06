@@ -21,6 +21,7 @@ import subprocess
 import os
 from pprint import pprint
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
+from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 
 HISAT_VERSION = "2.0.5"
 
@@ -151,20 +152,26 @@ class Hisat2(object):
         This then returns the expected return dictionary from HISAT2.
         """
         align_upload_params = {
-            "ws_id_or_name": input_params["ws_name"],
+            "destination_ref": "{}/{}".format(input_params["ws_name"], input_params["alignmentset_name"]),
             "file_path": alignment_file,
+
             "library_type": reads_info["style"],  # single or paired end,
-            "condition": "some_condition",
-            "genome_id": input_params["genome_ref"],
-            "read_sample_id": reads_info["object_ref"],
+            "condition": reads_info["condition"],
+            "assembly_or_genome_ref": input_params["genome_ref"],
+            "read_library_ref": reads_info["object_ref"],
             "aligned_using": "hisat2",
             "aligner_version": HISAT_VERSION,
-            "aligner_opts": input_params,
+            "aligner_opts": input_params
         }
+        if "sampleset_ref" in reads_info:
+            align_upload_params["sampleset_ref"] = reads_info["sampleset_ref"]
         print("Uploading completed alignment")
         pprint(align_upload_params)
-        alignment_ref = "new_alignment_ref"
         # TODO: insert ReadsAlignmentUtils.upload_alignment here.
+
+        ra_util = ReadsAlignmentUtils(self.callback_url)
+        alignment_ref = ra_util.upload_alignment(align_upload_params)["obj_ref"]
+        print("Done! New alignment uploaded as object {}".format(alignment_ref))
         return alignment_ref
 
     def _build_hisat2_report(self, params):

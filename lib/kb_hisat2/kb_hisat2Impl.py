@@ -94,6 +94,7 @@ class kb_hisat2:
         idx_prefix = hs_runner.build_index(params["genome_ref"])
 
         # 2. Get list of reads object references
+        sampleset_ref = params["sampleset_ref"]
         reads_refs = fetch_reads_refs_from_sampleset(
             params["sampleset_ref"], self.workspace_url, self.callback_url
         )
@@ -102,11 +103,13 @@ class kb_hisat2:
         alignments = dict()
         for idx, reads_ref in enumerate(reads_refs):
             reads = fetch_reads_from_reference(reads_ref, self.callback_url)
+            if reads_ref != sampleset_ref:
+                reads["sampleset_ref"] = sampleset_ref
             output_file = "aligned_reads_{}".format(idx)
             alignments[reads_ref] = hs_runner.run_hisat2(
                 idx_prefix, reads, params, output_file=output_file
             )
-            # delete reads file
+            # delete reads file to free some space
             os.remove(reads["file_fwd"])
             if "file_rev" in reads:
                 os.remove(reads["file_rev"])

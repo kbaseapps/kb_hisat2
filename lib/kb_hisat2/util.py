@@ -4,6 +4,7 @@ These mainly deal with manipulating files from Workspace objects.
 There's also some parameter checking and munging functions.
 """
 from __future__ import print_function
+import re
 from pprint import pprint
 from Workspace.WorkspaceClient import Workspace
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
@@ -18,11 +19,59 @@ def check_hisat2_parameters(params):
     Returns a list of error strings if there's a problem, or just an empty list otherwise.
     """
     errors = list()
+    # parameter keys and rules:
+    # -------------------------
+    # ws_name - workspace name, string, required
+    # alignmentset_name - output object name, string, required
+    # string sampleset_ref - input reads object ref, string, required
+    # string genome_ref - input genome object ref, string, required
+    # num_threads - int, >= 1, optional
+    # quality_score - string, one of phred33 or phred64, optional (default phred33)
+    # skip - int, >= 0, optional
+    # trim3 - int, >= 0, optional
+    # trim5 - int, >= 0, optional
+    # np - int,
+    # minins - int,
+    # maxins - int,
+    # orientation - string, one of fr, rr, rf, ff, optional (default fr)
+    # min_intron_length, int, >= 0, required
+    # int max_intron_length - int, >= 0, required
+    # bool no_spliced_alignment - 0 or 1, optional (default 0)
+    # bool transcriptome_mapping_only - 0 or 1, optional (default 0)
+    # string tailor_alignments - string ...?
+    if "ws_name" not in params or not valid_string(params["ws_name"]):
+        errors.append("Parameter ws_name must be a valid workspace "
+                      "name, not ".format(params.get("ws_name", None)))
+    if "alignmentset_name" not in params or not valid_string(params["alignmentset_name"]):
+        errors.append("Parameter alignmentset_name must be a valid Workspace object string, "
+                      "not ".format(params.get("alignmentset_name", None)))
+    if "sampleset_ref" not in params or not valid_string(params["sampleset_ref"], is_ref=True):
+        errors.append("Parameter sampleset_ref must be a valid Workspace object reference, "
+                      "not ".format(params.get("sampleset_ref", None)))
+    if "genome_ref" not in params or not valid_string(params["genome_ref"], is_ref=True):
+        errors.append("Parameter genome_ref must be a valid Workspace object reference, "
+                      "not ".format(params.get("genome_ref", None)))
     return errors
 
 
-def setup_hisat2():
-    pass
+def valid_string(s, is_ref=False):
+    is_valid = isinstance(str, basestring) and len(str) > 0
+    if is_valid and is_ref:
+        is_valid = check_reference(s)
+    return is_valid
+
+
+def check_reference(ref):
+    """
+    Tests the given ref string to make sure it conforms to the expected
+    object reference format. Returns True if it passes, False otherwise.
+    """
+    obj_ref_regex = re.compile("^(?P<wsid>\d+)\/(?P<objid>\d+)(\/(?P<ver>\d+))?$")
+    ref_path = ref.split(";")
+    for step in ref_path:
+        if not obj_ref_regex.match(step):
+            return False
+    return True
 
 
 def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):

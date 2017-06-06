@@ -39,6 +39,7 @@ tailor_alignments =
 */
     typedef structure {
         string ws_name;
+        string alignmentset_name;
         string sampleset_ref;
         string genome_ref;
         int num_threads;
