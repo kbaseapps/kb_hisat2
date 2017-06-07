@@ -23,7 +23,7 @@ sampleset_ref = the workspace reference for the sampleset of reads to align.
 genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
 alignmentset_name = the name of the alignment set object to create.
 num_threads = the number of threads to tell hisat to use (NOT USER SET?)
-quality_score =
+quality_score = one of phred33 or phred64
 skip =
 trim3 =
 trim5 =
@@ -36,11 +36,14 @@ max_intron_length =
 no_spliced_alignment =
 transcriptome_mapping_only =
 tailor_alignments =
+condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
+            ignored for sets.
 */
     typedef structure {
         string ws_name;
         string alignmentset_name;
         string sampleset_ref;
+        string condition;
         string genome_ref;
         int num_threads;
         string quality_score;

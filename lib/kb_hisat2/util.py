@@ -12,7 +12,7 @@ from ReadsUtils.ReadsUtilsClient import ReadsUtils
 from SetAPI.SetAPIClient import SetAPI
 
 
-def check_hisat2_parameters(params):
+def check_hisat2_parameters(params, ws_url):
     """
     Checks to ensure that the hisat2 parameter set is correct and has the right
     mash of options.
@@ -50,6 +50,10 @@ def check_hisat2_parameters(params):
     if "sampleset_ref" not in params or not valid_string(params["sampleset_ref"], is_ref=True):
         errors.append("Parameter sampleset_ref must be a valid Workspace object reference, "
                       "not {}".format(params.get("sampleset_ref", None)))
+    elif check_ref_type(params["sampleset_ref"], ["PairedEndLibary", "SingleEndLibrary"], ws_url):
+        if "condition" not in params or not valid_string(params["condition"]):
+            errors.append("Parameter condition is required for a single "
+                          "PairedEndLibrary or SingleEndLibrary")
     if "genome_ref" not in params or not valid_string(params["genome_ref"], is_ref=True):
         errors.append("Parameter genome_ref must be a valid Workspace object reference, "
                       "not {}".format(params.get("genome_ref", None)))
@@ -57,7 +61,7 @@ def check_hisat2_parameters(params):
 
 
 def valid_string(s, is_ref=False):
-    is_valid = isinstance(s, basestring) and len(s) > 0
+    is_valid = isinstance(s, basestring) and len(s.strip()) > 0
     if is_valid and is_ref:
         is_valid = check_reference(s)
     return is_valid
@@ -69,7 +73,7 @@ def check_reference(ref):
     object reference format. Returns True if it passes, False otherwise.
     """
     obj_ref_regex = re.compile("^(?P<wsid>\d+)\/(?P<objid>\d+)(\/(?P<ver>\d+))?$")
-    ref_path = ref.split(";")
+    ref_path = ref.strip().split(";")
     for step in ref_path:
         if not obj_ref_regex.match(step):
             return False

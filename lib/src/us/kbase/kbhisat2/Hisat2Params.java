@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
  * alignmentset_name = the name of the alignment set object to create.
  * num_threads = the number of threads to tell hisat to use (NOT USER SET?)
- * quality_score =
+ * quality_score = one of phred33 or phred64
  * skip =
  * trim3 =
  * trim5 =
@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * no_spliced_alignment =
  * transcriptome_mapping_only =
  * tailor_alignments =
+ * condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
+ *             ignored for sets.
  * </pre>
  * 
  */
@@ -42,6 +44,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "ws_name",
     "alignmentset_name",
     "sampleset_ref",
+    "condition",
     "genome_ref",
     "num_threads",
     "quality_score",
@@ -66,6 +69,8 @@ public class Hisat2Params {
     private String alignmentsetName;
     @JsonProperty("sampleset_ref")
     private String samplesetRef;
+    @JsonProperty("condition")
+    private String condition;
     @JsonProperty("genome_ref")
     private String genomeRef;
     @JsonProperty("num_threads")
@@ -140,6 +145,21 @@ public class Hisat2Params {
 
     public Hisat2Params withSamplesetRef(String samplesetRef) {
         this.samplesetRef = samplesetRef;
+        return this;
+    }
+
+    @JsonProperty("condition")
+    public String getCondition() {
+        return condition;
+    }
+
+    @JsonProperty("condition")
+    public void setCondition(String condition) {
+        this.condition = condition;
+    }
+
+    public Hisat2Params withCondition(String condition) {
+        this.condition = condition;
         return this;
     }
 
@@ -380,7 +400,7 @@ public class Hisat2Params {
 
     @Override
     public String toString() {
-        return ((((((((((((((((((((((((((((((((((((((("Hisat2Params"+" [wsName=")+ wsName)+", alignmentsetName=")+ alignmentsetName)+", samplesetRef=")+ samplesetRef)+", genomeRef=")+ genomeRef)+", numThreads=")+ numThreads)+", qualityScore=")+ qualityScore)+", skip=")+ skip)+", trim3=")+ trim3)+", trim5=")+ trim5)+", np=")+ np)+", minins=")+ minins)+", maxins=")+ maxins)+", orientation=")+ orientation)+", minIntronLength=")+ minIntronLength)+", maxIntronLength=")+ maxIntronLength)+", noSplicedAlignment=")+ noSplicedAlignment)+", transcriptomeMappingOnly=")+ transcriptomeMappingOnly)+", tailorAlignments=")+ tailorAlignments)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((((((((((((((((((((((((((("Hisat2Params"+" [wsName=")+ wsName)+", alignmentsetName=")+ alignmentsetName)+", samplesetRef=")+ samplesetRef)+", condition=")+ condition)+", genomeRef=")+ genomeRef)+", numThreads=")+ numThreads)+", qualityScore=")+ qualityScore)+", skip=")+ skip)+", trim3=")+ trim3)+", trim5=")+ trim5)+", np=")+ np)+", minins=")+ minins)+", maxins=")+ maxins)+", orientation=")+ orientation)+", minIntronLength=")+ minIntronLength)+", maxIntronLength=")+ maxIntronLength)+", noSplicedAlignment=")+ noSplicedAlignment)+", transcriptomeMappingOnly=")+ transcriptomeMappingOnly)+", tailorAlignments=")+ tailorAlignments)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }
