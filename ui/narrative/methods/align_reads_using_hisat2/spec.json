@@ -29,6 +29,16 @@
             "valid_ws_types" : ["KBaseGenomes.Genome" ]
         }
     }, {
+        "id": "alignment_output",
+        "optional": false,
+        "advanced": false,
+        "allow_multiple": false,
+        "default_values": [""],
+        "field_type": "text",
+        "text_options": {
+            "is_output_name": true
+        }
+    }, {
         "id" : "quality_score",
         "optional" : true,
         "advanced" : true,
@@ -211,6 +221,9 @@
                 }, {
                     "input_parameter" : "orientation",
                     "target_property" : "orientation"
+                }, {
+                    "input_parameter": "alignment_output",
+                    "target_property": "alignmentset_name"
                 }
             ],
             "output_mapping" : [{
