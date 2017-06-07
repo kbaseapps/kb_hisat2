@@ -17,7 +17,6 @@ import us.kbase.common.service.UnauthorizedException;
  * <p>Original spec-file module name: kb_hisat2</p>
  * <pre>
  * A KBase module: kb_hisat2
- * This sample module contains one small method - filter_contigs.
  * </pre>
  */
 public class KbHisat2Client {
@@ -168,15 +167,15 @@ public class KbHisat2Client {
      * <pre>
      * </pre>
      * @param   params   instance of type {@link us.kbase.kbhisat2.Hisat2Params Hisat2Params}
-     * @return   instance of type {@link us.kbase.kbhisat2.ResultsToReport ResultsToReport}
+     * @return   instance of type {@link us.kbase.kbhisat2.Hisat2Output Hisat2Output}
      * @throws IOException if an IO exception occurs
      * @throws JsonClientException if a JSON RPC exception occurs
      */
-    public ResultsToReport runHisat2(Hisat2Params params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+    public Hisat2Output runHisat2(Hisat2Params params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
         List<Object> args = new ArrayList<Object>();
         args.add(params);
-        TypeReference<List<ResultsToReport>> retType = new TypeReference<List<ResultsToReport>>() {};
-        List<ResultsToReport> res = caller.jsonrpcCall("kb_hisat2.run_hisat2", args, retType, true, true, jsonRpcContext, this.serviceVersion);
+        TypeReference<List<Hisat2Output>> retType = new TypeReference<List<Hisat2Output>>() {};
+        List<Hisat2Output> res = caller.jsonrpcCall("kb_hisat2.run_hisat2", args, retType, true, true, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
