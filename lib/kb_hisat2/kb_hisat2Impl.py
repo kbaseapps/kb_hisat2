@@ -5,8 +5,10 @@ from __future__ import print_function
 import os
 from util import (
     check_hisat2_parameters,
-    fetch_reads_refs_from_sampleset,
-    fetch_reads_from_reference
+)
+from file_util import (
+    fetch_reads_from_reference,
+    fetch_reads_refs_from_sampleset
 )
 from kb_hisat2.hisat2 import Hisat2
 #END_HEADER
@@ -29,7 +31,7 @@ class kb_hisat2:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/briehl/kb_hisat2"
-    GIT_COMMIT_HASH = "4de811a8f211a0d62c4b7ec7aaec71057b1a385b"
+    GIT_COMMIT_HASH = "1e57d0568cbf3fe295cb5f0346784bc0c4ceac9e"
 
     #BEGIN_CLASS_HEADER
     # Class variables and functions can be defined in this block
