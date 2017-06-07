@@ -1,6 +1,5 @@
 /*
 A KBase module: kb_hisat2
-This sample module contains one small method - filter_contigs.
 */
 
 module kb_hisat2 {
