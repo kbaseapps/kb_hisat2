@@ -55,8 +55,8 @@ class Hisat2IndexManager(object):
         if source_ref is None:
             raise ValueError("Missing reference object needed to build a HISAT2 index.")
         print("Building HISAT2 index files for {}".format(source_ref))
-        idx_dir = "kb_hisat_idx"
-        idx_prefix = "kb_hisat_idx-" + str(uuid.uuid4())
+        idx_dir = "kb_hisat2_idx"
+        idx_prefix = "kb_hisat2_idx-" + str(uuid.uuid4())
         try:
             os.mkdir(os.path.join(self.working_dir, idx_dir))
         except OSError:

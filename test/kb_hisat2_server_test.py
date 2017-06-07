@@ -104,17 +104,28 @@ class kb_hisat2Test(unittest.TestCase):
         # Upload test reads - PairedEnd
 
         # Upload test ReadsSet of single end reads
+        reads_set = [{
+            "ref": cls.single_end_ref_wt_1,
+            "label": "wt"
+        }, {
+            "ref": cls.single_end_ref_wt_2,
+            "label": "wt"
+        }]
+        cls.single_end_reads_set = load_reads_set(
+            cls.callback_url, cls.ws_name, reads_set, "se_reads_set"
+        )
+
+        # Upload test SampleSet of single end reads
         reads_refs = [
             cls.single_end_ref_wt_1,
             cls.single_end_ref_wt_2
         ]
-        cls.single_end_reads_set = load_reads_set(
-            cls.callback_url, cls.ws_name, reads_refs, "se_reads_set"
-        )
-
-        # Upload test SampleSet of single end reads
+        conditions = [
+            "wt",
+            "wt"
+        ]
         cls.single_end_sampleset = load_sample_set(
-            cls.wsURL, cls.ws_name, reads_refs, "SingleEnd", "se_sampleset"
+            cls.wsURL, cls.ws_name, reads_refs, conditions, "SingleEnd", "se_sampleset"
         )
 
     @classmethod
@@ -135,7 +146,6 @@ class kb_hisat2Test(unittest.TestCase):
     def get_context(self):
         return self.__class__.ctx
 
-    @unittest.skip("skipping index build")
     def test_build_hisat2_index_from_genome_ok(self):
         manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
         idx_prefix = manager.get_hisat2_index(self.genome_ref)
@@ -159,12 +169,12 @@ class kb_hisat2Test(unittest.TestCase):
     def test_build_hisat2_index_from_assembly_ok(self):
         pass
 
-    @unittest.skip("skipping ReadsSet run.")
     def test_run_hisat2_readsset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
             "sampleset_ref": self.single_end_reads_set,
             "genome_ref": self.genome_ref,
+            "alignmentset_name": "new_alignment_set",
             "num_threads": 2,
             "quality_score": "phred33",
             "skip": 0,
@@ -179,12 +189,13 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
-    @unittest.skip("skipping single end reads run.")
     def test_run_hisat2_single_end_lib_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
             "sampleset_ref": self.single_end_ref_wt_1,
+            "condition": "wt",
             "genome_ref": self.genome_ref,
+            "alignmentset_name": "new_alignment_set",
             "num_threads": 2,
             "quality_score": "phred33",
             "skip": 0,

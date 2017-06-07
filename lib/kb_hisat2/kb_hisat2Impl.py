@@ -3,10 +3,6 @@
 # The header block is where all import statments should live
 from __future__ import print_function
 import os
-from Bio import SeqIO
-from pprint import pprint, pformat
-from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
-from KBaseReport.KBaseReportClient import KBaseReport
 from util import (
     check_hisat2_parameters,
     fetch_reads_refs_from_sampleset,
@@ -23,7 +19,6 @@ class kb_hisat2:
 
     Module Description:
     A KBase module: kb_hisat2
-This sample module contains one small method - filter_contigs.
     '''
 
     ######## WARNING FOR GEVENT USERS ####### noqa
@@ -34,7 +29,7 @@ This sample module contains one small method - filter_contigs.
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/briehl/kb_hisat2"
-    GIT_COMMIT_HASH = "81d046a0534dfd7af4409eeedfced42806dd7abd"
+    GIT_COMMIT_HASH = "51a2aabdb1da750553c856e4a7bb4d72c95a74ff"
 
     #BEGIN_CLASS_HEADER
     # Class variables and functions can be defined in this block
@@ -65,22 +60,25 @@ This sample module contains one small method - filter_contigs.
            reference genome that HISAT2 will align against. alignmentset_name
            = the name of the alignment set object to create. num_threads =
            the number of threads to tell hisat to use (NOT USER SET?)
-           quality_score = skip = trim3 = trim5 = np = minins = maxins =
-           orientation = min_intron_length = max_intron_length =
-           no_spliced_alignment = transcriptome_mapping_only =
-           tailor_alignments =) -> structure: parameter "ws_name" of String,
-           parameter "alignmentset_name" of String, parameter "sampleset_ref"
-           of String, parameter "genome_ref" of String, parameter
-           "num_threads" of Long, parameter "quality_score" of String,
-           parameter "skip" of Long, parameter "trim3" of Long, parameter
-           "trim5" of Long, parameter "np" of Long, parameter "minins" of
-           Long, parameter "maxins" of Long, parameter "orientation" of
-           String, parameter "min_intron_length" of Long, parameter
-           "max_intron_length" of Long, parameter "no_spliced_alignment" of
-           type "bool" (indicates true or false values, false <= 0, true
-           >=1), parameter "transcriptome_mapping_only" of type "bool"
-           (indicates true or false values, false <= 0, true >=1), parameter
-           "tailor_alignments" of String
+           quality_score = one of phred33 or phred64 skip = trim3 = trim5 =
+           np = minins = maxins = orientation = min_intron_length =
+           max_intron_length = no_spliced_alignment =
+           transcriptome_mapping_only = tailor_alignments = condition = a
+           string stating the experimental condition of the reads. REQUIRED
+           for single reads, ignored for sets.) -> structure: parameter
+           "ws_name" of String, parameter "alignmentset_name" of String,
+           parameter "sampleset_ref" of String, parameter "condition" of
+           String, parameter "genome_ref" of String, parameter "num_threads"
+           of Long, parameter "quality_score" of String, parameter "skip" of
+           Long, parameter "trim3" of Long, parameter "trim5" of Long,
+           parameter "np" of Long, parameter "minins" of Long, parameter
+           "maxins" of Long, parameter "orientation" of String, parameter
+           "min_intron_length" of Long, parameter "max_intron_length" of
+           Long, parameter "no_spliced_alignment" of type "bool" (indicates
+           true or false values, false <= 0, true >=1), parameter
+           "transcriptome_mapping_only" of type "bool" (indicates true or
+           false values, false <= 0, true >=1), parameter "tailor_alignments"
+           of String
         :returns: instance of type "ResultsToReport" (Object for Report type)
            -> structure: parameter "report_name" of String, parameter
            "report_ref" of String
@@ -92,7 +90,7 @@ This sample module contains one small method - filter_contigs.
 
         # steps to cover.
         # 0. check the parameters
-        param_err = check_hisat2_parameters(params)
+        param_err = check_hisat2_parameters(params, self.workspace_url)
         if len(param_err) > 0:
             for err in param_err:
                 print(err)
@@ -122,6 +120,8 @@ This sample module contains one small method - filter_contigs.
             # make sure condition info carries over if we have it
             if "condition" in reads_ref:
                 reads["condition"] = reads_ref["condition"]
+            elif "condition" in params:
+                reads["condition"] = params["condition"]
             output_file = "aligned_reads_{}".format(idx)
             alignment_file = hs_runner.run_hisat2(
                 idx_prefix, reads, params, output_file=output_file

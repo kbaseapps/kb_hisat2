@@ -39,6 +39,13 @@
             "is_output_name": true
         }
     }, {
+        "id": "reads_condition",
+        "optional" : true,
+        "advanced": false,
+        "allow_multiple": false,
+        "default_values": [ "unspecified" ],
+        "field_type": "text"
+    }, {
         "id" : "quality_score",
         "optional" : true,
         "advanced" : true,
@@ -222,8 +229,11 @@
                     "input_parameter" : "orientation",
                     "target_property" : "orientation"
                 }, {
-                    "input_parameter": "alignment_output",
-                    "target_property": "alignmentset_name"
+                    "input_parameter" : "alignment_output",
+                    "target_property" : "alignmentset_name"
+                }, {
+                    "input_parameter" : "reads_condition",
+                    "target_property" : "condition"
                 }
             ],
             "output_mapping" : [{

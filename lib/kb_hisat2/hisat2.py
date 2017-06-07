@@ -167,7 +167,7 @@ class Hisat2(object):
             "destination_ref": "{}/{}".format(input_params["ws_name"], input_params["alignmentset_name"]),
             "file_path": alignment_file,
             "library_type": reads_info["style"],  # single or paired end,
-            "condition": reads_info.get("condition", ""),
+            "condition": reads_info["condition"],
             "assembly_or_genome_ref": input_params["genome_ref"],
             "read_library_ref": reads_info["object_ref"],
             "aligned_using": "hisat2",

@@ -61,17 +61,12 @@ def load_reads(callback_url, ws_name, tech, file_fwd, file_rev, target_name):
     return reads_ref["obj_ref"]
 
 
-def load_reads_set(callback_url, ws_name, reads_refs, target_name):
+def load_reads_set(callback_url, ws_name, reads_set, target_name):
     """
     Combine a list of reads references into a ReadsSet.
     if file_rev is None or not a present key, then this is treated as a single end reads.
     """
     reads_set = list()
-    for ref in reads_refs:
-        reads_set.append({
-            "ref": ref,
-            "label": "a_reads_object"
-        })
     set_client = SetAPI(callback_url)
     set_output = set_client.save_reads_set_v1({
         "workspace": ws_name,
@@ -84,7 +79,7 @@ def load_reads_set(callback_url, ws_name, reads_refs, target_name):
     return set_output["set_ref"]
 
 
-def load_sample_set(workspace_url, ws_name, reads_refs, library_type, target_name):
+def load_sample_set(workspace_url, ws_name, reads_refs, conditions, library_type, target_name):
     """
     Upload a set of files as a sample set.
     library_type = "SingleEnd" or "PairedEnd"
@@ -98,9 +93,9 @@ def load_sample_set(workspace_url, ws_name, reads_refs, library_type, target_nam
         "sample_ids": reads_refs,
         "sampleset_desc": None,
         "sampleset_id": target_name,
+        "condition": conditions,
         "source": None
     }
-    sample_set["condition"] = ["wt" for i in range(len(reads_refs))]
     ws_client = Workspace(workspace_url)
     ss_obj = ws_client.save_objects({
         "workspace": ws_name,
