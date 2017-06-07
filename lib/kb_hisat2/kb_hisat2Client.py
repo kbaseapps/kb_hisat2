@@ -61,9 +61,11 @@ class kb_hisat2(object):
            "transcriptome_mapping_only" of type "bool" (indicates true or
            false values, false <= 0, true >=1), parameter "tailor_alignments"
            of String
-        :returns: instance of type "ResultsToReport" (Object for Report type)
-           -> structure: parameter "report_name" of String, parameter
-           "report_ref" of String
+        :returns: instance of type "Hisat2Output" (Output for hisat2.
+           alignment_ref: can be either an Alignment or AlignmentSet,
+           depending on inputs.) -> structure: parameter "report_name" of
+           String, parameter "report_ref" of String, parameter
+           "alignment_ref" of String
         """
         return self._client.call_method(
             'kb_hisat2.run_hisat2',

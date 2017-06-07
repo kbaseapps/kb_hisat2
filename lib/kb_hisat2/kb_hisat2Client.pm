@@ -27,7 +27,6 @@ kb_hisat2::kb_hisat2Client
 
 
 A KBase module: kb_hisat2
-This sample module contains one small method - filter_contigs.
 
 
 =cut
@@ -121,7 +120,7 @@ sub new
 
 <pre>
 $params is a kb_hisat2.Hisat2Params
-$return is a kb_hisat2.ResultsToReport
+$return is a kb_hisat2.Hisat2Output
 Hisat2Params is a reference to a hash where the following keys are defined:
 	ws_name has a value which is a string
 	alignmentset_name has a value which is a string
@@ -143,9 +142,10 @@ Hisat2Params is a reference to a hash where the following keys are defined:
 	transcriptome_mapping_only has a value which is a kb_hisat2.bool
 	tailor_alignments has a value which is a string
 bool is an int
-ResultsToReport is a reference to a hash where the following keys are defined:
+Hisat2Output is a reference to a hash where the following keys are defined:
 	report_name has a value which is a string
 	report_ref has a value which is a string
+	alignment_ref has a value which is a string
 
 </pre>
 
@@ -154,7 +154,7 @@ ResultsToReport is a reference to a hash where the following keys are defined:
 =begin text
 
 $params is a kb_hisat2.Hisat2Params
-$return is a kb_hisat2.ResultsToReport
+$return is a kb_hisat2.Hisat2Output
 Hisat2Params is a reference to a hash where the following keys are defined:
 	ws_name has a value which is a string
 	alignmentset_name has a value which is a string
@@ -176,9 +176,10 @@ Hisat2Params is a reference to a hash where the following keys are defined:
 	transcriptome_mapping_only has a value which is a kb_hisat2.bool
 	tailor_alignments has a value which is a string
 bool is an int
-ResultsToReport is a reference to a hash where the following keys are defined:
+Hisat2Output is a reference to a hash where the following keys are defined:
 	report_name has a value which is a string
 	report_ref has a value which is a string
+	alignment_ref has a value which is a string
 
 
 =end text
@@ -357,43 +358,6 @@ an int
 
 
 
-=head2 ResultsToReport
-
-=over 4
-
-
-
-=item Description
-
-Object for Report type
-
-
-=item Definition
-
-=begin html
-
-<pre>
-a reference to a hash where the following keys are defined:
-report_name has a value which is a string
-report_ref has a value which is a string
-
-</pre>
-
-=end html
-
-=begin text
-
-a reference to a hash where the following keys are defined:
-report_name has a value which is a string
-report_ref has a value which is a string
-
-
-=end text
-
-=back
-
-
-
 =head2 Hisat2Params
 
 =over 4
@@ -477,6 +441,46 @@ max_intron_length has a value which is an int
 no_spliced_alignment has a value which is a kb_hisat2.bool
 transcriptome_mapping_only has a value which is a kb_hisat2.bool
 tailor_alignments has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 Hisat2Output
+
+=over 4
+
+
+
+=item Description
+
+Output for hisat2.
+alignment_ref: can be either an Alignment or AlignmentSet, depending on inputs.
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+report_name has a value which is a string
+report_ref has a value which is a string
+alignment_ref has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+report_name has a value which is a string
+report_ref has a value which is a string
+alignment_ref has a value which is a string
 
 
 =end text

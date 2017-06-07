@@ -29,7 +29,7 @@ class kb_hisat2:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/briehl/kb_hisat2"
-    GIT_COMMIT_HASH = "51a2aabdb1da750553c856e4a7bb4d72c95a74ff"
+    GIT_COMMIT_HASH = "4de811a8f211a0d62c4b7ec7aaec71057b1a385b"
 
     #BEGIN_CLASS_HEADER
     # Class variables and functions can be defined in this block
@@ -79,9 +79,11 @@ class kb_hisat2:
            "transcriptome_mapping_only" of type "bool" (indicates true or
            false values, false <= 0, true >=1), parameter "tailor_alignments"
            of String
-        :returns: instance of type "ResultsToReport" (Object for Report type)
-           -> structure: parameter "report_name" of String, parameter
-           "report_ref" of String
+        :returns: instance of type "Hisat2Output" (Output for hisat2.
+           alignment_ref: can be either an Alignment or AlignmentSet,
+           depending on inputs.) -> structure: parameter "report_name" of
+           String, parameter "report_ref" of String, parameter
+           "alignment_ref" of String
         """
         # ctx is the context object
         # return variables are: returnVal
@@ -138,12 +140,13 @@ class kb_hisat2:
             os.remove(reads["file_fwd"])
             if "file_rev" in reads:
                 os.remove(reads["file_rev"])
+
         report_info = hs_runner.build_report(params, reads_refs, alignments)
         returnVal["report_ref"] = report_info["ref"]
         returnVal["report_name"] = report_info["name"]
         returnVal["alignment_objs"] = alignments
         if len(reads_refs) == 1:
-            returnVal["alignment_set"] = params["alignmentset_name"]
+            returnVal["alignment_ref"] = params["alignmentset_name"]
         #END run_hisat2
 
         # At some point might do deeper type checking...

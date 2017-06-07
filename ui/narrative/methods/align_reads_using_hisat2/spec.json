@@ -237,10 +237,10 @@
                 }
             ],
             "output_mapping" : [{
-                "service_method_output_path": [0,"output"],
+                "service_method_output_path": [0,"alignment_ref"],
                 "target_property": "output"
             }, {
-                "service_method_output_path": [0,"workspace"],
+                "narrative_system_variable": "workspace",
                 "target_property": "workspace"
             }]
         }
