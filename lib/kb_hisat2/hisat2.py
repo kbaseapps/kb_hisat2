@@ -229,7 +229,7 @@ class Hisat2(object):
             '-x',
             idx_prefix
         ]
-        if style == "single":
+        if style == "single" or style == "interleaved":
             cmd.extend([
                 "-U",
                 ",".join(files_fwd)
@@ -245,8 +245,8 @@ class Hisat2(object):
                 ",".join(files_rev)
             ])
         else:
-            raise ValueError("HISAT2 run style must be one of 'paired' or 'single'. '{}' is not "
-                             "allowed".format(style))
+            raise ValueError("HISAT2 run style must be 'paired', 'single', or 'interleaved'. "
+                             "'{}' is not allowed".format(style))
 
         cmd.extend(exec_params)
         cmd.extend([
