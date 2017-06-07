@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
 # The header block is where all import statments should live
+from __future__ import print_function
 import os
 from Bio import SeqIO
 from pprint import pprint, pformat
 from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from KBaseReport.KBaseReportClient import KBaseReport
+from util import (
+    check_hisat2_parameters,
+    fetch_reads_refs_from_sampleset,
+    fetch_reads_from_reference
+)
+from kb_hisat2.hisat2 import Hisat2
 #END_HEADER
 
 
@@ -26,8 +33,8 @@ This sample module contains one small method - filter_contigs.
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = ""
-    GIT_COMMIT_HASH = ""
+    GIT_URL = "https://github.com/briehl/kb_hisat2"
+    GIT_COMMIT_HASH = "81d046a0534dfd7af4409eeedfced42806dd7abd"
 
     #BEGIN_CLASS_HEADER
     # Class variables and functions can be defined in this block
@@ -37,144 +44,114 @@ This sample module contains one small method - filter_contigs.
     # be found
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
-        
+
         # Any configuration parameters that are important should be parsed and
         # saved in the constructor.
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.workspace_url = config['workspace-url']
         self.shared_folder = config['scratch']
+        self.num_threads = 2
 
         #END_CONSTRUCTOR
         pass
 
 
-    def filter_contigs(self, ctx, params):
+    def run_hisat2(self, ctx, params):
         """
-        The actual function is declared using 'funcdef' to specify the name
-        and input/return arguments to the function.  For all typical KBase
-        Apps that run in the Narrative, your function should have the 
-        'authentication required' modifier.
-        :param params: instance of type "FilterContigsParams" (A 'typedef'
-           can also be used to define compound or container objects, like
-           lists, maps, and structures.  The standard KBase convention is to
-           use structures, as shown here, to define the input and output of
-           your function.  Here the input is a reference to the Assembly data
-           object, a workspace to save output, and a length threshold for
-           filtering. To define lists and maps, use a syntax similar to C++
-           templates to indicate the type contained in the list or map.  For
-           example: list <string> list_of_strings; mapping <string, int>
-           map_of_ints;) -> structure: parameter "assembly_input_ref" of type
-           "assembly_ref" (A 'typedef' allows you to provide a more specific
-           name for a type.  Built-in primitive types include 'string',
-           'int', 'float'.  Here we define a type named assembly_ref to
-           indicate a string that should be set to a KBase ID reference to an
-           Assembly data object.), parameter "workspace_name" of String,
-           parameter "min_length" of Long
-        :returns: instance of type "FilterContigsResults" (Here is the
-           definition of the output of the function.  The output can be used
-           by other SDK modules which call your code, or the output
-           visualizations in the Narrative.  'report_name' and 'report_ref'
-           are special output fields- if defined, the Narrative can
-           automatically render your Report.) -> structure: parameter
-           "report_name" of String, parameter "report_ref" of String,
-           parameter "assembly_output" of type "assembly_ref" (A 'typedef'
-           allows you to provide a more specific name for a type.  Built-in
-           primitive types include 'string', 'int', 'float'.  Here we define
-           a type named assembly_ref to indicate a string that should be set
-           to a KBase ID reference to an Assembly data object.), parameter
-           "n_initial_contigs" of Long, parameter "n_contigs_removed" of
-           Long, parameter "n_contigs_remaining" of Long
+        :param params: instance of type "Hisat2Params" (Input for hisat2.
+           ws_name = the workspace name provided by the narrative for storing
+           output. sampleset_ref = the workspace reference for the sampleset
+           of reads to align. genome_ref = the workspace reference for the
+           reference genome that HISAT2 will align against. alignmentset_name
+           = the name of the alignment set object to create. num_threads =
+           the number of threads to tell hisat to use (NOT USER SET?)
+           quality_score = skip = trim3 = trim5 = np = minins = maxins =
+           orientation = min_intron_length = max_intron_length =
+           no_spliced_alignment = transcriptome_mapping_only =
+           tailor_alignments =) -> structure: parameter "ws_name" of String,
+           parameter "alignmentset_name" of String, parameter "sampleset_ref"
+           of String, parameter "genome_ref" of String, parameter
+           "num_threads" of Long, parameter "quality_score" of String,
+           parameter "skip" of Long, parameter "trim3" of Long, parameter
+           "trim5" of Long, parameter "np" of Long, parameter "minins" of
+           Long, parameter "maxins" of Long, parameter "orientation" of
+           String, parameter "min_intron_length" of Long, parameter
+           "max_intron_length" of Long, parameter "no_spliced_alignment" of
+           type "bool" (indicates true or false values, false <= 0, true
+           >=1), parameter "transcriptome_mapping_only" of type "bool"
+           (indicates true or false values, false <= 0, true >=1), parameter
+           "tailor_alignments" of String
+        :returns: instance of type "ResultsToReport" (Object for Report type)
+           -> structure: parameter "report_name" of String, parameter
+           "report_ref" of String
         """
         # ctx is the context object
-        # return variables are: output
-        #BEGIN filter_contigs
+        # return variables are: returnVal
+        #BEGIN run_hisat2
+        returnVal = dict()
 
-        # Print statements to stdout/stderr are captured and available as the App log
-        print('Starting Filter Contigs function. Params=')
-        pprint(params)
+        # steps to cover.
+        # 0. check the parameters
+        param_err = check_hisat2_parameters(params)
+        if len(param_err) > 0:
+            for err in param_err:
+                print(err)
+            raise ValueError("Errors found in parameters, see logs for details.")
 
-        # Step 1 - Parse/examine the parameters and catch any errors
-        # It is important to check that parameters exist and are defined, and that nice error
-        # messages are returned to users.  Parameter values go through basic validation when
-        # defined in a Narrative App, but advanced users or other SDK developers can call
-        # this function directly, so validation is still important.
-        print('Validating parameters.')
-        if 'workspace_name' not in params:
-            raise ValueError('Parameter workspace_name is not set in input arguments')
-        workspace_name = params['workspace_name']
-        if 'assembly_input_ref' not in params:
-            raise ValueError('Parameter assembly_input_ref is not set in input arguments')
-        assembly_input_ref = params['assembly_input_ref']
-        if 'min_length' not in params:
-            raise ValueError('Parameter min_length is not set in input arguments')
-        min_length_orig = params['min_length']
-        min_length = None
-        try:
-            min_length = int(min_length_orig)
-        except ValueError:
-            raise ValueError('Cannot parse integer from min_length parameter (' + str(min_length_orig) + ')')
-        if min_length < 0:
-            raise ValueError('min_length parameter cannot be negative (' + str(min_length) + ')')
+        hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder)
+        # 1. Get hisat2 index from genome.
+        #    a. If it exists in cache, use that.
+        #    b. Otherwise, build it
+        idx_prefix = hs_runner.build_index(params["genome_ref"])
 
+        # 2. Get list of reads object references
+        sampleset_ref = params["sampleset_ref"]
+        reads_refs = fetch_reads_refs_from_sampleset(
+            params["sampleset_ref"], self.workspace_url, self.callback_url
+        )
 
-        # Step 2 - Download the input data as a Fasta and
-        # We can use the AssemblyUtils module to download a FASTA file from our Assembly data object.
-        # The return object gives us the path to the file that was created.
-        print('Downloading Assembly data as a Fasta file.')
-        assemblyUtil = AssemblyUtil(self.callback_url)
-        fasta_file = assemblyUtil.get_assembly_as_fasta({'ref': assembly_input_ref})
-
-
-        # Step 3 - Actually perform the filter operation, saving the good contigs to a new fasta file.
-        # We can use BioPython to parse the Fasta file and build and save the output to a file.
-        good_contigs = []
-        n_total = 0
-        n_remaining = 0
-        for record in SeqIO.parse(fasta_file['path'], 'fasta'):
-            n_total += 1
-            if len(record.seq) >= min_length:
-                good_contigs.append(record)
-                n_remaining += 1
-
-        print('Filtered Assembly to ' + str(n_remaining) + ' contigs out of ' + str(n_total))
-        filtered_fasta_file = os.path.join(self.shared_folder, 'filtered.fasta')
-        SeqIO.write(good_contigs, filtered_fasta_file, 'fasta')
-
-
-        # Step 4 - Save the new Assembly back to the system
-        print('Uploading filtered Assembly data.')
-        new_assembly = assemblyUtil.save_assembly_from_fasta({'file': {'path': filtered_fasta_file},
-                                                              'workspace_name': workspace_name,
-                                                              'assembly_name': fasta_file['assembly_name']
-                                                              })
-
-
-        # Step 5 - Build a Report and return
-        reportObj = {
-            'objects_created': [{'ref': new_assembly, 'description': 'Filtered contigs'}],
-            'text_message': 'Filtered Assembly to ' + str(n_remaining) + ' contigs out of ' + str(n_total)
-        }
-        report = KBaseReport(self.callback_url)
-        report_info = report.create({'report': reportObj, 'workspace_name': params['workspace_name']})
-
-
-        # STEP 6: contruct the output to send back
-        output = {'report_name': report_info['name'],
-                  'report_ref': report_info['ref'],
-                  'assembly_output': new_assembly,
-                  'n_initial_contigs': n_total,
-                  'n_contigs_removed': n_total - n_remaining,
-                  'n_contigs_remaining': n_remaining
-                  }
-        print('returning:' + pformat(output))
-                
-        #END filter_contigs
+        # 3. Run hisat with index and reads.
+        alignments = dict()
+        base_output_obj_name = params["alignmentset_name"]
+        for idx, reads_ref in enumerate(reads_refs):
+            reads = fetch_reads_from_reference(reads_ref["ref"], self.callback_url)
+            # if the reads ref came from a different sample set, then we need to drop that
+            # reference inside the reads info object so it can be linked in the alignment
+            if reads_ref["ref"] != sampleset_ref:
+                reads["sampleset_ref"] = sampleset_ref
+            # make sure condition info carries over if we have it
+            if "condition" in reads_ref:
+                reads["condition"] = reads_ref["condition"]
+            output_file = "aligned_reads_{}".format(idx)
+            alignment_file = hs_runner.run_hisat2(
+                idx_prefix, reads, params, output_file=output_file
+            )
+            # TODO: remove this hack! We currently only have support for single ReadsAlignment
+            # objects, not sets. I don't think, anyway.
+            # So, if we're doing a ReadsSet or SampleSet, there's one alignment made for each.
+            if len(reads_refs) > 1:
+                params["alignmentset_name"] = "{}_{}".format(base_output_obj_name, (idx+1))
+            alignments[reads_ref["ref"]] = hs_runner.upload_alignment(
+                params, reads, alignment_file
+            )
+            # delete reads file to free some space
+            os.remove(reads["file_fwd"])
+            if "file_rev" in reads:
+                os.remove(reads["file_rev"])
+        report_info = hs_runner.build_report(params, reads_refs, alignments)
+        returnVal["report_ref"] = report_info["ref"]
+        returnVal["report_name"] = report_info["name"]
+        returnVal["alignment_objs"] = alignments
+        if len(reads_refs) == 1:
+            returnVal["alignment_set"] = params["alignmentset_name"]
+        #END run_hisat2
 
         # At some point might do deeper type checking...
-        if not isinstance(output, dict):
-            raise ValueError('Method filter_contigs return value ' +
-                             'output is not type dict as required.')
+        if not isinstance(returnVal, dict):
+            raise ValueError('Method run_hisat2 return value ' +
+                             'returnVal is not type dict as required.')
         # return the results
-        return [output]
+        return [returnVal]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

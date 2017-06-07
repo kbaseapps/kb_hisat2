@@ -4,58 +4,60 @@ This sample module contains one small method - filter_contigs.
 */
 
 module kb_hisat2 {
-    /* 
-        A 'typedef' allows you to provide a more specific name for
-        a type.  Built-in primitive types include 'string', 'int',
-        'float'.  Here we define a type named assembly_ref to indicate
-        a string that should be set to a KBase ID reference to an
-        Assembly data object.
-    */
-    typedef string assembly_ref;
+/* indicates true or false values, false <= 0, true >=1 */
+    typedef int bool;
 
-    /*
-        A 'typedef' can also be used to define compound or container
-        objects, like lists, maps, and structures.  The standard KBase
-        convention is to use structures, as shown here, to define the
-        input and output of your function.  Here the input is a
-        reference to the Assembly data object, a workspace to save
-        output, and a length threshold for filtering.
-
-        To define lists and maps, use a syntax similar to C++ templates
-        to indicate the type contained in the list or map.  For example:
-
-            list <string> list_of_strings;
-            mapping <string, int> map_of_ints;
-    */
+/*
+     Object for Report type
+*/
     typedef structure {
-        assembly_ref assembly_input_ref;
-        string workspace_name;
-        int min_length;
-    } FilterContigsParams;
+		string report_name;
+		string report_ref;
+    } ResultsToReport;
 
 
-    /*
-        Here is the definition of the output of the function.  The output
-        can be used by other SDK modules which call your code, or the output
-        visualizations in the Narrative.  'report_name' and 'report_ref' are
-        special output fields- if defined, the Narrative can automatically
-        render your Report.
-    */
+/*
+Input for hisat2.
+ws_name = the workspace name provided by the narrative for storing output.
+sampleset_ref = the workspace reference for the sampleset of reads to align.
+genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
+alignmentset_name = the name of the alignment set object to create.
+num_threads = the number of threads to tell hisat to use (NOT USER SET?)
+quality_score =
+skip =
+trim3 =
+trim5 =
+np =
+minins =
+maxins =
+orientation =
+min_intron_length =
+max_intron_length =
+no_spliced_alignment =
+transcriptome_mapping_only =
+tailor_alignments =
+*/
     typedef structure {
-        string report_name;
-        string report_ref;
-        assembly_ref assembly_output;
-        int n_initial_contigs;
-        int n_contigs_removed;
-        int n_contigs_remaining;
-    } FilterContigsResults;
-    
-    /*
-        The actual function is declared using 'funcdef' to specify the name
-        and input/return arguments to the function.  For all typical KBase
-        Apps that run in the Narrative, your function should have the 
-        'authentication required' modifier.
-    */
-    funcdef filter_contigs(FilterContigsParams params)
-        returns (FilterContigsResults output) authentication required;
+        string ws_name;
+        string alignmentset_name;
+        string sampleset_ref;
+        string genome_ref;
+        int num_threads;
+        string quality_score;
+        int skip;
+        int trim3;
+        int trim5;
+        int np;
+        int minins;
+        int maxins;
+        string orientation;
+        int min_intron_length;
+        int max_intron_length;
+        bool no_spliced_alignment;
+        bool transcriptome_mapping_only;
+        string tailor_alignments;
+    } Hisat2Params;
+
+    funcdef run_hisat2(Hisat2Params params)
+        returns(ResultsToReport) authentication required;
 };

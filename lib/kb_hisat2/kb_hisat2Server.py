@@ -333,10 +333,10 @@ class Application(object):
         self.serverlog.set_log_level(6)
         self.rpc_service = JSONRPCServiceCustom()
         self.method_authentication = dict()
-        self.rpc_service.add(impl_kb_hisat2.filter_contigs,
-                             name='kb_hisat2.filter_contigs',
+        self.rpc_service.add(impl_kb_hisat2.run_hisat2,
+                             name='kb_hisat2.run_hisat2',
                              types=[dict])
-        self.method_authentication['kb_hisat2.filter_contigs'] = 'required'  # noqa
+        self.method_authentication['kb_hisat2.run_hisat2'] = 'required'  # noqa
         self.rpc_service.add(impl_kb_hisat2.status,
                              name='kb_hisat2.status',
                              types=[dict])
