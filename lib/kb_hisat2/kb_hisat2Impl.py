@@ -112,6 +112,7 @@ This sample module contains one small method - filter_contigs.
 
         # 3. Run hisat with index and reads.
         alignments = dict()
+        base_output_obj_name = params["alignmentset_name"]
         for idx, reads_ref in enumerate(reads_refs):
             reads = fetch_reads_from_reference(reads_ref["ref"], self.callback_url)
             # if the reads ref came from a different sample set, then we need to drop that
@@ -122,13 +123,27 @@ This sample module contains one small method - filter_contigs.
             if "condition" in reads_ref:
                 reads["condition"] = reads_ref["condition"]
             output_file = "aligned_reads_{}".format(idx)
-            alignments[reads_ref["ref"]] = hs_runner.run_hisat2(
+            alignment_file = hs_runner.run_hisat2(
                 idx_prefix, reads, params, output_file=output_file
+            )
+            # TODO: remove this hack! We currently only have support for single ReadsAlignment
+            # objects, not sets. I don't think, anyway.
+            # So, if we're doing a ReadsSet or SampleSet, there's one alignment made for each.
+            if len(reads_refs) > 1:
+                params["alignmentset_name"] = "{}_{}".format(base_output_obj_name, (idx+1))
+            alignments[reads_ref["ref"]] = hs_runner.upload_alignment(
+                params, reads, alignment_file
             )
             # delete reads file to free some space
             os.remove(reads["file_fwd"])
             if "file_rev" in reads:
                 os.remove(reads["file_rev"])
+        report_info = hs_runner.build_report(params, reads_refs, alignments)
+        returnVal["report_ref"] = report_info["ref"]
+        returnVal["report_name"] = report_info["name"]
+        returnVal["alignment_objs"] = alignments
+        if len(reads_refs) == 1:
+            returnVal["alignment_set"] = params["alignmentset_name"]
         #END run_hisat2
 
         # At some point might do deeper type checking...

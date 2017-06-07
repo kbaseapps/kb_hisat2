@@ -22,6 +22,7 @@ import os
 from pprint import pprint
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
+from KBaseReport.KBaseReportClient import KBaseReport
 
 HISAT_VERSION = "2.0.5"
 
@@ -141,12 +142,19 @@ class Hisat2(object):
         if ret_code != 0:
             raise RuntimeError('Failed to execute HISAT2 alignment with the given parameters!')
         print("Done!")
+        return alignment_file
         print("Assembling output object and report...")
         alignment_ref = self._upload_hisat2_alignment(input_params, reads, alignment_file)
         print("Done!")
         return alignment_ref
 
-    def _upload_hisat2_alignment(self, input_params, reads_info, alignment_file):
+    def upload_alignment_set(self, input_params, alignment_info):
+        """
+        Uploads a set of alignment files as an AlignmentSet.
+        """
+        pass
+
+    def upload_alignment(self, input_params, reads_info, alignment_file):
         """
         Uploads the alignment file + metadata.
         This then returns the expected return dictionary from HISAT2.
@@ -159,7 +167,7 @@ class Hisat2(object):
             "destination_ref": "{}/{}".format(input_params["ws_name"], input_params["alignmentset_name"]),
             "file_path": alignment_file,
             "library_type": reads_info["style"],  # single or paired end,
-            "condition": reads_info["condition"],
+            "condition": reads_info.get("condition", ""),
             "assembly_or_genome_ref": input_params["genome_ref"],
             "read_library_ref": reads_info["object_ref"],
             "aligned_using": "hisat2",
@@ -176,11 +184,33 @@ class Hisat2(object):
         print("Done! New alignment uploaded as object {}".format(alignment_ref))
         return alignment_ref
 
-    def _build_hisat2_report(self, params):
+    def build_report(self, params, reads_refs, alignments, alignment_set=None):
         """
         Builds and uploads the HISAT2 report.
         """
-        pass
+        report_client = KBaseReport(self.callback_url)
+        report_text = None
+        created_objects = list()
+        for k in alignments:
+            created_objects.append({
+                "ref": alignments[k],
+                "description": "Reads {} aligned to Genome {}".format(k, params["genome_ref"])
+            })
+        if alignment_set is not None:
+            created_objects.append({
+                "ref": alignment_set,
+                "description": "Set of all new alignments"
+            })
+
+        report_text = "Created {} alignments from the given alignment set.".format(len(alignments))
+        report_info = report_client.create({
+            "workspace_name": params["ws_name"],
+            "report": {
+                "objects_created": created_objects,
+                "text_message": report_text
+            }
+        })
+        return report_info
 
     def _build_hisat2_cmd(self, idx_prefix, style, files_fwd, files_rev, output_file, exec_params):
         """
