@@ -13,7 +13,7 @@ from __future__ import print_function
 import subprocess
 import uuid
 import os
-from kb_hisat2.util import (
+from kb_hisat2.file_util import (
     fetch_fasta_from_object
 )
 
