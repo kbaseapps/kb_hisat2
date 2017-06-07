@@ -145,7 +145,7 @@ def fetch_reads_from_reference(ref, callback_url):
         reads_client = ReadsUtils(callback_url)
         reads_dl = reads_client.download_reads({
             "read_libraries": [ref],
-            "interleaved": "true"
+            "interleaved": "false"
         })
         pprint(reads_dl)
         reads_files = reads_dl['files'][ref]['files']
