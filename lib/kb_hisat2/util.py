@@ -39,23 +39,25 @@ def check_hisat2_parameters(params):
     # bool no_spliced_alignment - 0 or 1, optional (default 0)
     # bool transcriptome_mapping_only - 0 or 1, optional (default 0)
     # string tailor_alignments - string ...?
+    print("Checking input parameters")
+    pprint(params)
     if "ws_name" not in params or not valid_string(params["ws_name"]):
         errors.append("Parameter ws_name must be a valid workspace "
-                      "name, not ".format(params.get("ws_name", None)))
+                      "name, not {}".format(params.get("ws_name", None)))
     if "alignmentset_name" not in params or not valid_string(params["alignmentset_name"]):
         errors.append("Parameter alignmentset_name must be a valid Workspace object string, "
-                      "not ".format(params.get("alignmentset_name", None)))
+                      "not {}".format(params.get("alignmentset_name", None)))
     if "sampleset_ref" not in params or not valid_string(params["sampleset_ref"], is_ref=True):
         errors.append("Parameter sampleset_ref must be a valid Workspace object reference, "
-                      "not ".format(params.get("sampleset_ref", None)))
+                      "not {}".format(params.get("sampleset_ref", None)))
     if "genome_ref" not in params or not valid_string(params["genome_ref"], is_ref=True):
         errors.append("Parameter genome_ref must be a valid Workspace object reference, "
-                      "not ".format(params.get("genome_ref", None)))
+                      "not {}".format(params.get("genome_ref", None)))
     return errors
 
 
 def valid_string(s, is_ref=False):
-    is_valid = isinstance(str, basestring) and len(str) > 0
+    is_valid = isinstance(s, basestring) and len(s) > 0
     if is_valid and is_ref:
         is_valid = check_reference(s)
     return is_valid
@@ -142,7 +144,14 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
     """
     From the given object ref, return a list of all reads objects that are a part of that
     object. E.g., if ref is a ReadsSet, return a list of all PairedEndLibrary or SingleEndLibrary
-    refs that are a member of that ReadsSet.
+    refs that are a member of that ReadsSet. This is returned as a list of dictionaries as follows:
+    {
+        "ref": reads object reference,
+        "condition": condition string associated with that reads object
+    }
+    The only one required is "ref", all other keys may or may not be present, based on the reads
+    object or object type in initial ref variable. E.g. a RNASeqSampleSet might have condition info
+    for each reads object, but a single PairedEndLibrary may not have that info.
 
     If ref is already a Reads library, just returns a list with ref as a single element.
     """
@@ -156,17 +165,26 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
             "include_item_info": 0
         })
         for reads in reads_set["data"]["items"]:
-            refs.append(reads["ref"])
+            refs.append({
+                "ref": reads["ref"],
+                "condition": reads["label"]
+            })
     elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
         print("Looking up reads references in RNASeqSampleSet object")
         ws = Workspace(ws_url)
         sample_set = ws.get_objects2({"objects": [{"ref": ref}]})["data"][0]["data"]
-        refs = sample_set["sample_ids"]
+        for i in range(len(sample_set["sample_ids"])):
+            refs.append({
+                "ref": sample_set["sample_ids"][i],
+                "condition": sample_set["condition"][i]
+            })
     elif ("KBaseAssembly.SingleEndLibrary" in obj_type or
           "KBaseFile.SingleEndLibrary" in obj_type or
           "KBaseAssembly.PairedEndLibrary" in obj_type or
           "KBaseFile.PairedEndLibrary" in obj_type):
-        refs.append(ref)
+        refs.append({
+            "ref": ref
+        })
     else:
         raise ValueError("Unable to fetch reads reference from object {} "
                          "which is a {}".format(ref, obj_type))

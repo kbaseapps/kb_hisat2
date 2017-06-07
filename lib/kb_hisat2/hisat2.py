@@ -151,25 +151,27 @@ class Hisat2(object):
         Uploads the alignment file + metadata.
         This then returns the expected return dictionary from HISAT2.
         """
+        aligner_opts = dict()
+        for k in input_params:
+            aligner_opts[k] = str(input_params[k])
+
         align_upload_params = {
             "destination_ref": "{}/{}".format(input_params["ws_name"], input_params["alignmentset_name"]),
             "file_path": alignment_file,
-
             "library_type": reads_info["style"],  # single or paired end,
             "condition": reads_info["condition"],
             "assembly_or_genome_ref": input_params["genome_ref"],
             "read_library_ref": reads_info["object_ref"],
             "aligned_using": "hisat2",
             "aligner_version": HISAT_VERSION,
-            "aligner_opts": input_params
+            "aligner_opts": aligner_opts
         }
         if "sampleset_ref" in reads_info:
             align_upload_params["sampleset_ref"] = reads_info["sampleset_ref"]
         print("Uploading completed alignment")
         pprint(align_upload_params)
-        # TODO: insert ReadsAlignmentUtils.upload_alignment here.
 
-        ra_util = ReadsAlignmentUtils(self.callback_url)
+        ra_util = ReadsAlignmentUtils(self.callback_url, service_ver="dev")
         alignment_ref = ra_util.upload_alignment(align_upload_params)["obj_ref"]
         print("Done! New alignment uploaded as object {}".format(alignment_ref))
         return alignment_ref

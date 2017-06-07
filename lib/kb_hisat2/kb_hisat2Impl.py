@@ -9,7 +9,6 @@ from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
 from KBaseReport.KBaseReportClient import KBaseReport
 from util import (
     check_hisat2_parameters,
-    setup_hisat2,
     fetch_reads_refs_from_sampleset,
     fetch_reads_from_reference
 )
@@ -24,6 +23,7 @@ class kb_hisat2:
 
     Module Description:
     A KBase module: kb_hisat2
+This sample module contains one small method - filter_contigs.
     '''
 
     ######## WARNING FOR GEVENT USERS ####### noqa
@@ -34,7 +34,7 @@ class kb_hisat2:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/briehl/kb_hisat2"
-    GIT_COMMIT_HASH = "2d7e32ccd12fa157beba745dee22afbeb9eec74d"
+    GIT_COMMIT_HASH = "81d046a0534dfd7af4409eeedfced42806dd7abd"
 
     #BEGIN_CLASS_HEADER
     # Class variables and functions can be defined in this block
@@ -53,22 +53,34 @@ class kb_hisat2:
         self.num_threads = 2
 
         #END_CONSTRUCTOR
+        pass
+
 
     def run_hisat2(self, ctx, params):
         """
-        :param params: instance of type "Hisat2Params" -> structure:
-           parameter "ws_id" of String, parameter "sampleset_id" of String,
-           parameter "genome_id" of String, parameter "num_threads" of Long,
-           parameter "quality_score" of String, parameter "skip" of Long,
-           parameter "trim3" of Long, parameter "trim5" of Long, parameter
-           "np" of Long, parameter "minins" of Long, parameter "maxins" of
-           Long, parameter "orientation" of String, parameter
-           "min_intron_length" of Long, parameter "max_intron_length" of
-           Long, parameter "no_spliced_alignment" of type "bool" (indicates
-           true or false values, false <= 0, true >=1), parameter
-           "transcriptome_mapping_only" of type "bool" (indicates true or
-           false values, false <= 0, true >=1), parameter "tailor_alignments"
-           of String
+        :param params: instance of type "Hisat2Params" (Input for hisat2.
+           ws_name = the workspace name provided by the narrative for storing
+           output. sampleset_ref = the workspace reference for the sampleset
+           of reads to align. genome_ref = the workspace reference for the
+           reference genome that HISAT2 will align against. alignmentset_name
+           = the name of the alignment set object to create. num_threads =
+           the number of threads to tell hisat to use (NOT USER SET?)
+           quality_score = skip = trim3 = trim5 = np = minins = maxins =
+           orientation = min_intron_length = max_intron_length =
+           no_spliced_alignment = transcriptome_mapping_only =
+           tailor_alignments =) -> structure: parameter "ws_name" of String,
+           parameter "alignmentset_name" of String, parameter "sampleset_ref"
+           of String, parameter "genome_ref" of String, parameter
+           "num_threads" of Long, parameter "quality_score" of String,
+           parameter "skip" of Long, parameter "trim3" of Long, parameter
+           "trim5" of Long, parameter "np" of Long, parameter "minins" of
+           Long, parameter "maxins" of Long, parameter "orientation" of
+           String, parameter "min_intron_length" of Long, parameter
+           "max_intron_length" of Long, parameter "no_spliced_alignment" of
+           type "bool" (indicates true or false values, false <= 0, true
+           >=1), parameter "transcriptome_mapping_only" of type "bool"
+           (indicates true or false values, false <= 0, true >=1), parameter
+           "tailor_alignments" of String
         :returns: instance of type "ResultsToReport" (Object for Report type)
            -> structure: parameter "report_name" of String, parameter
            "report_ref" of String
@@ -76,7 +88,6 @@ class kb_hisat2:
         # ctx is the context object
         # return variables are: returnVal
         #BEGIN run_hisat2
-
         returnVal = dict()
 
         # steps to cover.
@@ -85,7 +96,7 @@ class kb_hisat2:
         if len(param_err) > 0:
             for err in param_err:
                 print(err)
-            raise ValueError("Errors found in parameters, see above for details.")
+            raise ValueError("Errors found in parameters, see logs for details.")
 
         hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder)
         # 1. Get hisat2 index from genome.
@@ -102,11 +113,16 @@ class kb_hisat2:
         # 3. Run hisat with index and reads.
         alignments = dict()
         for idx, reads_ref in enumerate(reads_refs):
-            reads = fetch_reads_from_reference(reads_ref, self.callback_url)
-            if reads_ref != sampleset_ref:
+            reads = fetch_reads_from_reference(reads_ref["ref"], self.callback_url)
+            # if the reads ref came from a different sample set, then we need to drop that
+            # reference inside the reads info object so it can be linked in the alignment
+            if reads_ref["ref"] != sampleset_ref:
                 reads["sampleset_ref"] = sampleset_ref
+            # make sure condition info carries over if we have it
+            if "condition" in reads_ref:
+                reads["condition"] = reads_ref["condition"]
             output_file = "aligned_reads_{}".format(idx)
-            alignments[reads_ref] = hs_runner.run_hisat2(
+            alignments[reads_ref["ref"]] = hs_runner.run_hisat2(
                 idx_prefix, reads, params, output_file=output_file
             )
             # delete reads file to free some space
@@ -121,7 +137,6 @@ class kb_hisat2:
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]
-
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

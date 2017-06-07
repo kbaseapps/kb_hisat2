@@ -35,19 +35,29 @@ class kb_hisat2(object):
 
     def run_hisat2(self, params, context=None):
         """
-        :param params: instance of type "Hisat2Params" -> structure:
-           parameter "ws_id" of String, parameter "sampleset_id" of String,
-           parameter "genome_id" of String, parameter "num_threads" of Long,
-           parameter "quality_score" of String, parameter "skip" of Long,
-           parameter "trim3" of Long, parameter "trim5" of Long, parameter
-           "np" of Long, parameter "minins" of Long, parameter "maxins" of
-           Long, parameter "orientation" of String, parameter
-           "min_intron_length" of Long, parameter "max_intron_length" of
-           Long, parameter "no_spliced_alignment" of type "bool" (indicates
-           true or false values, false <= 0, true >=1), parameter
-           "transcriptome_mapping_only" of type "bool" (indicates true or
-           false values, false <= 0, true >=1), parameter "tailor_alignments"
-           of String
+        :param params: instance of type "Hisat2Params" (Input for hisat2.
+           ws_name = the workspace name provided by the narrative for storing
+           output. sampleset_ref = the workspace reference for the sampleset
+           of reads to align. genome_ref = the workspace reference for the
+           reference genome that HISAT2 will align against. alignmentset_name
+           = the name of the alignment set object to create. num_threads =
+           the number of threads to tell hisat to use (NOT USER SET?)
+           quality_score = skip = trim3 = trim5 = np = minins = maxins =
+           orientation = min_intron_length = max_intron_length =
+           no_spliced_alignment = transcriptome_mapping_only =
+           tailor_alignments =) -> structure: parameter "ws_name" of String,
+           parameter "alignmentset_name" of String, parameter "sampleset_ref"
+           of String, parameter "genome_ref" of String, parameter
+           "num_threads" of Long, parameter "quality_score" of String,
+           parameter "skip" of Long, parameter "trim3" of Long, parameter
+           "trim5" of Long, parameter "np" of Long, parameter "minins" of
+           Long, parameter "maxins" of Long, parameter "orientation" of
+           String, parameter "min_intron_length" of Long, parameter
+           "max_intron_length" of Long, parameter "no_spliced_alignment" of
+           type "bool" (indicates true or false values, false <= 0, true
+           >=1), parameter "transcriptome_mapping_only" of type "bool"
+           (indicates true or false values, false <= 0, true >=1), parameter
+           "tailor_alignments" of String
         :returns: instance of type "ResultsToReport" (Object for Report type)
            -> structure: parameter "report_name" of String, parameter
            "report_ref" of String

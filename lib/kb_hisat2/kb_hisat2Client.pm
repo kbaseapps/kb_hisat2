@@ -123,9 +123,10 @@ sub new
 $params is a kb_hisat2.Hisat2Params
 $return is a kb_hisat2.ResultsToReport
 Hisat2Params is a reference to a hash where the following keys are defined:
-	ws_id has a value which is a string
-	sampleset_id has a value which is a string
-	genome_id has a value which is a string
+	ws_name has a value which is a string
+	alignmentset_name has a value which is a string
+	sampleset_ref has a value which is a string
+	genome_ref has a value which is a string
 	num_threads has a value which is an int
 	quality_score has a value which is a string
 	skip has a value which is an int
@@ -154,9 +155,10 @@ ResultsToReport is a reference to a hash where the following keys are defined:
 $params is a kb_hisat2.Hisat2Params
 $return is a kb_hisat2.ResultsToReport
 Hisat2Params is a reference to a hash where the following keys are defined:
-	ws_id has a value which is a string
-	sampleset_id has a value which is a string
-	genome_id has a value which is a string
+	ws_name has a value which is a string
+	alignmentset_name has a value which is a string
+	sampleset_ref has a value which is a string
+	genome_ref has a value which is a string
 	num_threads has a value which is an int
 	quality_score has a value which is a string
 	skip has a value which is an int
@@ -396,15 +398,39 @@ report_ref has a value which is a string
 
 
 
+=item Description
+
+Input for hisat2.
+ws_name = the workspace name provided by the narrative for storing output.
+sampleset_ref = the workspace reference for the sampleset of reads to align.
+genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
+alignmentset_name = the name of the alignment set object to create.
+num_threads = the number of threads to tell hisat to use (NOT USER SET?)
+quality_score =
+skip =
+trim3 =
+trim5 =
+np =
+minins =
+maxins =
+orientation =
+min_intron_length =
+max_intron_length =
+no_spliced_alignment =
+transcriptome_mapping_only =
+tailor_alignments =
+
+
 =item Definition
 
 =begin html
 
 <pre>
 a reference to a hash where the following keys are defined:
-ws_id has a value which is a string
-sampleset_id has a value which is a string
-genome_id has a value which is a string
+ws_name has a value which is a string
+alignmentset_name has a value which is a string
+sampleset_ref has a value which is a string
+genome_ref has a value which is a string
 num_threads has a value which is an int
 quality_score has a value which is a string
 skip has a value which is an int
@@ -427,9 +453,10 @@ tailor_alignments has a value which is a string
 =begin text
 
 a reference to a hash where the following keys are defined:
-ws_id has a value which is a string
-sampleset_id has a value which is a string
-genome_id has a value which is a string
+ws_name has a value which is a string
+alignmentset_name has a value which is a string
+sampleset_ref has a value which is a string
+genome_ref has a value which is a string
 num_threads has a value which is an int
 quality_score has a value which is a string
 skip has a value which is an int

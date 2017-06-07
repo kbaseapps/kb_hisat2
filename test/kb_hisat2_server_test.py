@@ -199,12 +199,13 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
-    @unittest.skip("skipping sampleset reads run.")
+    # @unittest.skip("skipping sampleset reads run.")
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
             "sampleset_ref": self.single_end_sampleset,
             "genome_ref": self.genome_ref,
+            "alignmentset_name": "test_sampleset_alignments",
             "num_threads": 2,
             "quality_score": "phred33",
             "skip": 0,
