@@ -20,6 +20,7 @@ from __future__ import print_function
 import subprocess
 import os
 from pprint import pprint
+from pipes import quote
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 from KBaseReport.KBaseReportClient import KBaseReport
@@ -232,7 +233,7 @@ class Hisat2(object):
         if style == "single" or style == "interleaved":
             cmd.extend([
                 "-U",
-                ",".join(files_fwd)
+                quote(",".join(files_fwd))
             ])
         elif style == "paired":
             if len(files_fwd) != len(files_rev):
@@ -240,9 +241,9 @@ class Hisat2(object):
                                  "reads files for each side.")
             cmd.extend([
                 "-1",
-                ",".join(files_fwd),
+                quote(",".join(files_fwd)),
                 "-2",
-                ",".join(files_rev)
+                quote(",".join(files_rev))
             ])
         else:
             raise ValueError("HISAT2 run style must be 'paired', 'single', or 'interleaved'. "
@@ -251,6 +252,6 @@ class Hisat2(object):
         cmd.extend(exec_params)
         cmd.extend([
             "-S",
-            output_file
+            quote(output_file)
         ])
         return cmd

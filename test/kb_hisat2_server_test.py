@@ -4,7 +4,6 @@ import unittest
 import os  # noqa: F401
 import json  # noqa: F401
 import time
-import requests
 import shutil
 
 from os import environ
@@ -22,11 +21,14 @@ from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 
 from util import (
-    load_fasta_file,
     load_genbank_file,
     load_reads,
     load_reads_set,
     load_sample_set
+)
+
+from kb_hisat2.file_util import (
+    fetch_reads_from_reference
 )
 
 TEST_GBK_FILE = os.path.join("data", "at_chrom1_section.gbk")
@@ -243,61 +245,16 @@ class kb_hisat2Test(unittest.TestCase):
     def test_run_hisat2_missing_reads(self):
         pass
 
-    def test_run_hisat2_parameter_sets(self):
-        pass
-
     def test_build_report(self):
         pass
 
     def test_build_report_fail(self):
         pass
 
-    def test_dl_file_names(self):
-        """
-        Downloaded files from Shock, etc., should have reasonable alphanumeric file names.
-        Address PTV-360, | in file names causing fails when running HISAT.
-        """
-        pass
-
-    # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    # def test_filter_contigs_ok(self):
-    #
-    #     # First load a test FASTA file as an KBase Assembly
-    #     fasta_content = '>seq1 something soemthing asdf\n' \
-    #                     'agcttttcat\n' \
-    #                     '>seq2\n' \
-    #                     'agctt\n' \
-    #                     '>seq3\n' \
-    #                     'agcttttcatgg'
-    #
-    #     assembly_ref = self.load_fasta_file(os.path.join(self.scratch, 'test1.fasta'),
-    #                                         'TestAssembly',
-    #                                         fasta_content)
-    #
-    #     # Second, call your implementation
-    #     ret = self.getImpl().filter_contigs(self.getContext(),
-    #                                         {'workspace_name': self.getWsName(),
-    #                                          'assembly_input_ref': assembly_ref,
-    #                                          'min_length': 10
-    #                                          })
-    #
-    #     # Validate the returned data
-    #     self.assertEqual(ret[0]['n_initial_contigs'], 3)
-    #     self.assertEqual(ret[0]['n_contigs_removed'], 1)
-    #     self.assertEqual(ret[0]['n_contigs_remaining'], 2)
-    #
-    # def test_filter_contigs_err1(self):
-    #     with self.assertRaises(ValueError) as errorContext:
-    #         self.getImpl().filter_contigs(self.getContext(),
-    #                                       {'workspace_name': self.getWsName(),
-    #                                        'assembly_input_ref': '1/fake/3',
-    #                                        'min_length': '-10'})
-    #     self.assertIn('min_length parameter cannot be negative', str(errorContext.exception))
-    #
-    # def test_filter_contigs_err2(self):
-    #     with self.assertRaises(ValueError) as errorContext:
-    #         self.getImpl().filter_contigs(self.getContext(),
-    #                                       {'workspace_name': self.getWsName(),
-    #                                        'assembly_input_ref': '1/fake/3',
-    #                                        'min_length': 'ten'})
-    #     self.assertIn('Cannot parse integer from min_length parameter', str(errorContext.exception))
+    # def test_dl_file_names(self):
+    #     """
+    #     Downloaded files from Shock, etc., should have reasonable alphanumeric file names.
+    #     Address PTV-360, | in file names causing fails when running HISAT.
+    #     """
+    #     reads = fetch_reads_from_reference(self.single_end_ref_wt_1)
+    #     file_regex =
