@@ -171,6 +171,7 @@ class kb_hisat2Test(unittest.TestCase):
     def test_build_hisat2_index_from_assembly_ok(self):
         pass
 
+    @unittest.skip
     def test_run_hisat2_readsset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
@@ -191,6 +192,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
+    @unittest.skip
     def test_run_hisat2_single_end_lib_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
@@ -250,11 +252,3 @@ class kb_hisat2Test(unittest.TestCase):
 
     def test_build_report_fail(self):
         pass
-
-    # def test_dl_file_names(self):
-    #     """
-    #     Downloaded files from Shock, etc., should have reasonable alphanumeric file names.
-    #     Address PTV-360, | in file names causing fails when running HISAT.
-    #     """
-    #     reads = fetch_reads_from_reference(self.single_end_ref_wt_1)
-    #     file_regex =

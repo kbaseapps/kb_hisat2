@@ -106,9 +106,25 @@ def get_object_type(ref, ws_url):
     RuntimeError exception.
     """
     ws = Workspace(ws_url)
-    info = ws.get_object_info3({'objects': [{'ref': ref}]})
-    obj_info = info.get('infos', [[]])[0]
+    info = ws.get_object_info3({"objects": [{"ref": ref}]})
+    obj_info = info.get("infos", [[]])[0]
     if len(obj_info) == 0:
         raise RuntimeError("An error occurred while fetching type info from the Workspace. "
                            "No information returned for reference {}".format(ref))
     return obj_info[2]
+
+
+def get_object_names(ref_list, ws_url):
+    """
+    From a list of workspace references, returns a mapping from ref -> name of the object.
+    """
+    ws = Workspace(ws_url)
+    obj_ids = list()
+    for ref in ref_list:
+        obj_ids.append({"ref": ref})
+    info = ws.get_object_info3({"objects": obj_ids})
+    name_map = dict()
+    # might be in a data palette, so we can't just use the ref.
+    for i in range(len(info["infos"])):
+        name_map[";".join(info["paths"][i])] = info["infos"][i][1]
+    return name_map

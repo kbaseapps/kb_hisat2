@@ -10,6 +10,7 @@ from Workspace.WorkspaceClient import Workspace
 from kb_hisat2.util import (
     check_ref_type,
     get_object_type,
+    get_object_names
 )
 
 
@@ -84,7 +85,8 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
     refs that are a member of that ReadsSet. This is returned as a list of dictionaries as follows:
     {
         "ref": reads object reference,
-        "condition": condition string associated with that reads object
+        "condition": condition string associated with that reads object,
+        "name": reads object name (needed for saving an AlignmentSet)
     }
     The only one required is "ref", all other keys may or may not be present, based on the reads
     object or object type in initial ref variable. E.g. a RNASeqSampleSet might have condition info
@@ -101,26 +103,36 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
             "ref": ref,
             "include_item_info": 0
         })
+        ref_list = [r["ref"] for r in reads_set]
+        reads_names = get_object_names(ref_list, ws_url)
         for reads in reads_set["data"]["items"]:
+            ref = reads["ref"]
             refs.append({
-                "ref": reads["ref"],
-                "condition": reads["label"]
+                "ref": ref,
+                "condition": reads["label"],
+                "name": reads_names[ref]
             })
+
     elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
         print("Looking up reads references in RNASeqSampleSet object")
         ws = Workspace(ws_url)
         sample_set = ws.get_objects2({"objects": [{"ref": ref}]})["data"][0]["data"]
+        sample_names = get_object_names(sample_set["sample_ids"], ws_url)
         for i in range(len(sample_set["sample_ids"])):
+            ref = sample_set["sample_ids"][i]
             refs.append({
-                "ref": sample_set["sample_ids"][i],
-                "condition": sample_set["condition"][i]
+                "ref": ref,
+                "condition": sample_set["condition"][i],
+                "name": sample_names[ref]
             })
+
     elif ("KBaseAssembly.SingleEndLibrary" in obj_type or
           "KBaseFile.SingleEndLibrary" in obj_type or
           "KBaseAssembly.PairedEndLibrary" in obj_type or
           "KBaseFile.PairedEndLibrary" in obj_type):
         refs.append({
-            "ref": ref
+            "ref": ref,
+            "name": get_object_names([ref], ws_url)[ref]
         })
     else:
         raise ValueError("Unable to fetch reads reference from object {} "
