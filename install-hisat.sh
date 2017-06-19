@@ -5,7 +5,7 @@ echo "using $dest as installation directory";
 mkdir -p $dest
 
 # downlownload version
-VERSION='2.0.5'
+VERSION='2.1.0'
 rm -rf hisat-${VERSION}*
 wget "ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-${VERSION}-Linux_x86_64.zip"
 unzip hisat2-${VERSION}-Linux_x86_64.zip

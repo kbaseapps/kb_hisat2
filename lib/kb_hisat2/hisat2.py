@@ -184,7 +184,7 @@ class Hisat2(object):
             "sampleset_id": input_params['sampleset_ref'],
             "genome_id": input_params['genome_ref'],
             "aligner_opts": aligner_opts,
-            "bowtie2_index": None,
+            "bowtie2_index": "",
             "read_sample_ids": reads_ref_list,
             "condition": condition_list,
             "sample_alignments": alignment_list,
