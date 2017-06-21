@@ -25,6 +25,7 @@ from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 from KBaseReport.KBaseReportClient import KBaseReport
 from Workspace.WorkspaceClient import Workspace
+from SetAPI.SetAPIClient import SetAPI
 
 HISAT_VERSION = "2.0.5"
 
@@ -161,56 +162,74 @@ class Hisat2(object):
         for k in input_params:
             aligner_opts[k] = str(input_params[k])
 
-        # the first 3 are parallel: reads_ref_list[i], condition_list[i], and alignment_list[i]
-        # all refer to the same reads ref
-        reads_ref_list = list()
-        condition_list = list()
-        alignment_list = list()
-        reads_alignments_ref_map_list = list()
-        reads_alignments_name_map_list = list()
-
+        alignment_items = list()
         for ref in alignment_info:
-            reads_ref_list.append(ref)
-            condition_list.append(reads_info[ref].get("condition", None))
-            alignment_list.append(alignment_info[ref]["ref"])
-            reads_alignments_ref_map_list.append({ref: alignment_info[ref]["ref"]})
-            reads_alignments_name_map_list.append({
-                reads_info[ref]["name"]: alignment_info[ref]["name"]
+            alignment_items.append({
+                "ref": alignment_info[ref]["ref"],
+                "label": reads_info[ref].get("condition", None)
             })
-
         alignment_set = {
-            "aligned_using": "hisat2",
-            "aligner_version": HISAT_VERSION,
-            "sampleset_id": input_params['sampleset_ref'],
-            "genome_id": input_params['genome_ref'],
-            "aligner_opts": aligner_opts,
-            "bowtie2_index": "",
-            "read_sample_ids": reads_ref_list,
-            "condition": condition_list,
-            "sample_alignments": alignment_list,
-            "mapped_rnaseq_alignments": reads_alignments_name_map_list,
-            "mapped_alignments_ids": reads_alignments_ref_map_list
+            "description": "Alignments using HISAT2, v.{}".format(HISAT_VERSION),
+            "items": alignment_items
         }
-        provenance = [{
-            "input_ws_objects": alignment_list,
-            "service": "kb_hisat2",
-            "method": "run_hisat2"
-        }]
-
-        print("Uploading completed alignment set with these parameters:")
-        as_obj = {
-            "type": "KBaseRNASeq.RNASeqAlignmentSet",
-            "data": alignment_set,
-            "name": alignmentset_name,
-            "provenance": provenance
-        }
-        pprint(as_obj)
-        ws = Workspace(self.workspace_url)
-        as_info = ws.save_objects({
+        set_api = SetAPI(self.callback_url)
+        set_info = set_api.save_reads_alignment_set_v1({
             "workspace": input_params["ws_name"],
-            "objects": [as_obj],
-        })[0]
-        return "{}/{}/{}".format(as_info[6], as_info[0], as_info[4])
+            "output_object_name": alignmentset_name,
+            "data": alignment_set
+        })
+        return set_info["set_ref"]
+
+        # # the first 3 are parallel: reads_ref_list[i], condition_list[i], and alignment_list[i]
+        # # all refer to the same reads ref
+        # reads_ref_list = list()
+        # condition_list = list()
+        # alignment_list = list()
+        # reads_alignments_ref_map_list = list()
+        # reads_alignments_name_map_list = list()
+        #
+        # for ref in alignment_info:
+        #     reads_ref_list.append(ref)
+        #     condition_list.append(reads_info[ref].get("condition", None))
+        #     alignment_list.append(alignment_info[ref]["ref"])
+        #     reads_alignments_ref_map_list.append({ref: alignment_info[ref]["ref"]})
+        #     reads_alignments_name_map_list.append({
+        #         reads_info[ref]["name"]: alignment_info[ref]["name"]
+        #     })
+        #
+        # alignment_set = {
+        #     "aligned_using": "hisat2",
+        #     "aligner_version": HISAT_VERSION,
+        #     "sampleset_id": input_params['sampleset_ref'],
+        #     "genome_id": input_params['genome_ref'],
+        #     "aligner_opts": aligner_opts,
+        #     "bowtie2_index": "",
+        #     "read_sample_ids": reads_ref_list,
+        #     "condition": condition_list,
+        #     "sample_alignments": alignment_list,
+        #     "mapped_rnaseq_alignments": reads_alignments_name_map_list,
+        #     "mapped_alignments_ids": reads_alignments_ref_map_list
+        # }
+        # provenance = [{
+        #     "input_ws_objects": alignment_list,
+        #     "service": "kb_hisat2",
+        #     "method": "run_hisat2"
+        # }]
+        #
+        # print("Uploading completed alignment set with these parameters:")
+        # as_obj = {
+        #     "type": "KBaseRNASeq.RNASeqAlignmentSet",
+        #     "data": alignment_set,
+        #     "name": alignmentset_name,
+        #     "provenance": provenance
+        # }
+        # pprint(as_obj)
+        # ws = Workspace(self.workspace_url)
+        # as_info = ws.save_objects({
+        #     "workspace": input_params["ws_name"],
+        #     "objects": [as_obj],
+        # })[0]
+        # return "{}/{}/{}".format(as_info[6], as_info[0], as_info[4])
 
     def upload_alignment(self, input_params, reads_info, alignment_file):
         """

@@ -19,16 +19,12 @@ from kb_hisat2.kb_hisat2Impl import kb_hisat2
 from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
-
+from Workspace.WorkspaceClient import Workspace
 from util import (
     load_genbank_file,
     load_reads,
     load_reads_set,
     load_sample_set
-)
-
-from kb_hisat2.file_util import (
-    fetch_reads_from_reference
 )
 
 TEST_GBK_FILE = os.path.join("data", "at_chrom1_section.gbk")
@@ -169,7 +165,29 @@ class kb_hisat2Test(unittest.TestCase):
             self.assertIn("Missing reference object", err.exception)
 
     def test_build_hisat2_index_from_assembly_ok(self):
-        pass
+        manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
+        ws = Workspace(self.wsURL)
+        genome_obj_info = ws.get_objects2({
+            'objects': [{'ref': self.genome_ref}],
+            'no_data': 1
+        })
+        # get the list of genome refs from the returned info.
+        # if there are no refs (or something funky with the return), this will be an empty list.
+        # this WILL fail if data is an empty list. But it shouldn't be, and we know because
+        # we have a real genome reference, or get_objects2 would fail.
+        genome_obj_refs = genome_obj_info.get('data', [{}])[0].get('refs', [])
+
+        # see which of those are of an appropriate type (ContigSet or Assembly), if any.
+        assembly_ref = list()
+        ref_params = [{'ref': x} for x in genome_obj_refs]
+        ref_info = ws.get_object_info3({'objects': ref_params})
+        for idx, info in enumerate(ref_info.get('infos')):
+            if "KBaseGenomeAnnotations.Assembly" in info[2] or "KBaseGenomes.ContigSet" in info[2]:
+                assembly_ref.append(";".join(ref_info.get('paths')[idx]))
+        assembly_ref = assembly_ref[0]
+        idx_prefix = manager.get_hisat2_index(assembly_ref)
+        self.assertIn("kb_hisat2_idx", idx_prefix)
+
 
     @unittest.skip
     def test_run_hisat2_readsset_ok(self):
@@ -214,7 +232,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
-    # @unittest.skip("skipping sampleset reads run.")
+    @unittest.skip("skipping sampleset reads run.")
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
