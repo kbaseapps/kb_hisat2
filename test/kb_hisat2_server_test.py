@@ -188,8 +188,6 @@ class kb_hisat2Test(unittest.TestCase):
         idx_prefix = manager.get_hisat2_index(assembly_ref)
         self.assertIn("kb_hisat2_idx", idx_prefix)
 
-
-    @unittest.skip
     def test_run_hisat2_readsset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
@@ -210,7 +208,6 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
-    @unittest.skip
     def test_run_hisat2_single_end_lib_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
@@ -232,7 +229,6 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
-    @unittest.skip("skipping sampleset reads run.")
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
