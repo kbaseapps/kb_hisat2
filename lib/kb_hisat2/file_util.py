@@ -103,7 +103,7 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
             "ref": ref,
             "include_item_info": 0
         })
-        ref_list = [r["ref"] for r in reads_set]
+        ref_list = [r["ref"] for r in reads_set["data"]["items"]]
         reads_names = get_object_names(ref_list, ws_url)
         for reads in reads_set["data"]["items"]:
             ref = reads["ref"]

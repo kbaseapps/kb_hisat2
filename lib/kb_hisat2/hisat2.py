@@ -270,7 +270,7 @@ class Hisat2(object):
         created_objects = list()
         for k in alignments:
             created_objects.append({
-                "ref": alignments[k],
+                "ref": alignments[k]["ref"],
                 "description": "Reads {} aligned to Genome {}".format(k, params["genome_ref"])
             })
         if alignment_set is not None:
