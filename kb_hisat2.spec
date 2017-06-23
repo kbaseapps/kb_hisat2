@@ -12,20 +12,20 @@ module kb_hisat2 {
     sampleset_ref = the workspace reference for the sampleset of reads to align.
     genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
     alignmentset_name = the name of the alignment set object to create.
-    num_threads = the number of threads to tell hisat to use (NOT USER SET?)
+    num_threads = the number of threads to tell hisat to use (default 2)
     quality_score = one of phred33 or phred64
-    skip =
-    trim3 =
-    trim5 =
-    np =
-    minins =
-    maxins =
-    orientation =
-    min_intron_length =
-    max_intron_length =
-    no_spliced_alignment =
-    transcriptome_mapping_only =
-    tailor_alignments =
+    skip = number of initial reads to skip (default 0)
+    trim3 = number of bases to trim off of the 3' end of each read (default 0)
+    trim5 = number of bases to trim off of the 5' end of each read (default 0)
+    np = penalty for positions wither the read and/or the reference are an ambiguous character (default 1)
+    minins = minimum fragment length for valid paired-end alignments. only used if no_spliced_alignment is true
+    maxins = maximum fragment length for valid paired-end alignments. only used if no_spliced_alignment is true
+    orientation = orientation of each member of paired-end reads. valid values = "fr, rf, ff"
+    min_intron_length = sets minimum intron length (default 20)
+    max_intron_length = sets maximum intron length (default 500,000)
+    no_spliced_alignment = disable spliced alignment
+    transcriptome_mapping_only = only report alignments with known transcripts
+    tailor_alignments = report alignments tailored for either cufflinks or stringtie
     condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
                 ignored for sets.
 */

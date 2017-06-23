@@ -4,7 +4,6 @@ import unittest
 import os  # noqa: F401
 import json  # noqa: F401
 import time
-import requests
 import shutil
 
 from os import environ
@@ -20,9 +19,8 @@ from kb_hisat2.kb_hisat2Impl import kb_hisat2
 from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
-
+from Workspace.WorkspaceClient import Workspace
 from util import (
-    load_fasta_file,
     load_genbank_file,
     load_reads,
     load_reads_set,
@@ -167,7 +165,28 @@ class kb_hisat2Test(unittest.TestCase):
             self.assertIn("Missing reference object", err.exception)
 
     def test_build_hisat2_index_from_assembly_ok(self):
-        pass
+        manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
+        ws = Workspace(self.wsURL)
+        genome_obj_info = ws.get_objects2({
+            'objects': [{'ref': self.genome_ref}],
+            'no_data': 1
+        })
+        # get the list of genome refs from the returned info.
+        # if there are no refs (or something funky with the return), this will be an empty list.
+        # this WILL fail if data is an empty list. But it shouldn't be, and we know because
+        # we have a real genome reference, or get_objects2 would fail.
+        genome_obj_refs = genome_obj_info.get('data', [{}])[0].get('refs', [])
+
+        # see which of those are of an appropriate type (ContigSet or Assembly), if any.
+        assembly_ref = list()
+        ref_params = [{'ref': x} for x in genome_obj_refs]
+        ref_info = ws.get_object_info3({'objects': ref_params})
+        for idx, info in enumerate(ref_info.get('infos')):
+            if "KBaseGenomeAnnotations.Assembly" in info[2] or "KBaseGenomes.ContigSet" in info[2]:
+                assembly_ref.append(";".join(ref_info.get('paths')[idx]))
+        assembly_ref = assembly_ref[0]
+        idx_prefix = manager.get_hisat2_index(assembly_ref)
+        self.assertIn("kb_hisat2_idx", idx_prefix)
 
     def test_run_hisat2_readsset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
@@ -210,7 +229,6 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
 
-    # @unittest.skip("skipping sampleset reads run.")
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
@@ -243,61 +261,8 @@ class kb_hisat2Test(unittest.TestCase):
     def test_run_hisat2_missing_reads(self):
         pass
 
-    def test_run_hisat2_parameter_sets(self):
-        pass
-
     def test_build_report(self):
         pass
 
     def test_build_report_fail(self):
         pass
-
-    def test_dl_file_names(self):
-        """
-        Downloaded files from Shock, etc., should have reasonable alphanumeric file names.
-        Address PTV-360, | in file names causing fails when running HISAT.
-        """
-        pass
-
-    # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    # def test_filter_contigs_ok(self):
-    #
-    #     # First load a test FASTA file as an KBase Assembly
-    #     fasta_content = '>seq1 something soemthing asdf\n' \
-    #                     'agcttttcat\n' \
-    #                     '>seq2\n' \
-    #                     'agctt\n' \
-    #                     '>seq3\n' \
-    #                     'agcttttcatgg'
-    #
-    #     assembly_ref = self.load_fasta_file(os.path.join(self.scratch, 'test1.fasta'),
-    #                                         'TestAssembly',
-    #                                         fasta_content)
-    #
-    #     # Second, call your implementation
-    #     ret = self.getImpl().filter_contigs(self.getContext(),
-    #                                         {'workspace_name': self.getWsName(),
-    #                                          'assembly_input_ref': assembly_ref,
-    #                                          'min_length': 10
-    #                                          })
-    #
-    #     # Validate the returned data
-    #     self.assertEqual(ret[0]['n_initial_contigs'], 3)
-    #     self.assertEqual(ret[0]['n_contigs_removed'], 1)
-    #     self.assertEqual(ret[0]['n_contigs_remaining'], 2)
-    #
-    # def test_filter_contigs_err1(self):
-    #     with self.assertRaises(ValueError) as errorContext:
-    #         self.getImpl().filter_contigs(self.getContext(),
-    #                                       {'workspace_name': self.getWsName(),
-    #                                        'assembly_input_ref': '1/fake/3',
-    #                                        'min_length': '-10'})
-    #     self.assertIn('min_length parameter cannot be negative', str(errorContext.exception))
-    #
-    # def test_filter_contigs_err2(self):
-    #     with self.assertRaises(ValueError) as errorContext:
-    #         self.getImpl().filter_contigs(self.getContext(),
-    #                                       {'workspace_name': self.getWsName(),
-    #                                        'assembly_input_ref': '1/fake/3',
-    #                                        'min_length': 'ten'})
-    #     self.assertIn('Cannot parse integer from min_length parameter', str(errorContext.exception))

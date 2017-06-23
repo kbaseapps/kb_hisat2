@@ -115,6 +115,8 @@ class kb_hisat2:
         # 3. Run hisat with index and reads.
         alignments = dict()
         base_output_obj_name = params["alignmentset_name"]
+        reads_info = dict()
+        output_ref = None
         for idx, reads_ref in enumerate(reads_refs):
             reads = fetch_reads_from_reference(reads_ref["ref"], self.callback_url)
             # if the reads ref came from a different sample set, then we need to drop that
@@ -126,22 +128,31 @@ class kb_hisat2:
                 reads["condition"] = reads_ref["condition"]
             elif "condition" in params:
                 reads["condition"] = params["condition"]
+            reads["name"] = reads_ref["name"]
             output_file = "aligned_reads_{}".format(idx)
             alignment_file = hs_runner.run_hisat2(
                 idx_prefix, reads, params, output_file=output_file
             )
-            # TODO: remove this hack! We currently only have support for single ReadsAlignment
-            # objects, not sets. I don't think, anyway.
-            # So, if we're doing a ReadsSet or SampleSet, there's one alignment made for each.
             if len(reads_refs) > 1:
                 params["alignmentset_name"] = "{}_{}".format(base_output_obj_name, (idx+1))
-            alignments[reads_ref["ref"]] = hs_runner.upload_alignment(
-                params, reads, alignment_file
-            )
-            # delete reads file to free some space
+            # if there's only one, this will be the only output_ref made and we can use it.
+            # otherwise, there's another step later to get the alignmentset ref
+            output_ref = hs_runner.upload_alignment(params, reads, alignment_file)
+            alignments[reads_ref["ref"]] = {
+                "ref": output_ref,
+                "name": params["alignmentset_name"]
+            }
+            reads_info[reads_ref["ref"]] = reads
+            # delete reads file(s) to free some space
             os.remove(reads["file_fwd"])
             if "file_rev" in reads:
                 os.remove(reads["file_rev"])
+
+        # if we have multiple alignments, we need to make (and return) an alignment set.
+        if len(reads_refs) > 1:
+            output_ref = hs_runner.upload_alignment_set(
+                params, alignments, reads_info, base_output_obj_name
+            )
 
         report_info = hs_runner.build_report(params, reads_refs, alignments)
         returnVal["report_ref"] = report_info["ref"]
@@ -149,6 +160,8 @@ class kb_hisat2:
         returnVal["alignment_objs"] = alignments
         if len(reads_refs) == 1:
             returnVal["alignment_ref"] = params["alignmentset_name"]
+        else:
+            returnVal["alignment_ref"] = base_output_obj_name
         #END run_hisat2
 
         # At some point might do deeper type checking...
