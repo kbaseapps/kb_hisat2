@@ -66,7 +66,6 @@ def load_reads_set(callback_url, ws_name, reads_set, target_name):
     Combine a list of reads references into a ReadsSet.
     if file_rev is None or not a present key, then this is treated as a single end reads.
     """
-    reads_set = list()
     set_client = SetAPI(callback_url)
     set_output = set_client.save_reads_set_v1({
         "workspace": ws_name,
