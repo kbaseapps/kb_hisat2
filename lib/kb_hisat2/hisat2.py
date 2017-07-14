@@ -351,7 +351,7 @@ class Hisat2(object):
             build_gb_params["alignment_inputs"].append({
                 "alignment_ref": alignments[reads_ref]["ref"]
             })
-        browser_dir = gb.build_genome_browser(build_gb_params)[0]["browser_dir"]
+        browser_dir = gb.build_genome_browser(build_gb_params)["browser_dir"]
         html_zipped = package_directory(self.callback_url,
                                         browser_dir,
                                         'index.html',
