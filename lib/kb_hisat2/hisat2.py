@@ -362,7 +362,7 @@ class Hisat2(object):
             "html_links": [html_zipped],
             "report_object_name": "GenomeBrowser-" + str(uuid.uuid4()),
             "workspace_name": params["ws_name"],
-            "objects_created": created_objects,
+            "objects_created": created_objects
         }
 
         # report_info = report_client.create({
