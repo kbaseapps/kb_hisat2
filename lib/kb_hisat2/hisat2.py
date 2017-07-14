@@ -24,12 +24,16 @@ from pipes import quote  # deprecated, but useful here for filenames
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 from KBaseReport.KBaseReportClient import KBaseReport
-from Workspace.WorkspaceClient import Workspace
 from KBParallel.KBParallelClient import KBParallel
+from kb_GenomeBrowser.kb_GenomeBrowserClient import kb_GenomeBrowser as GenomeBrowser
 from SetAPI.SetAPIClient import SetAPI
 from file_util import (
     fetch_reads_from_reference
 )
+from util import (
+    package_directory
+)
+import uuid
 
 HISAT_VERSION = "2.1.0"
 
@@ -110,8 +114,8 @@ class Hisat2(object):
         batch_run_params = {
             "tasks": tasks,
             "runner": "parallel",
-            "concurrent_local_tasks": 3,
-            "concurrent_njsw_tasks": 0,
+            # "concurrent_local_tasks": 3,
+            # "concurrent_njsw_tasks": 0,
             "max_retries": 2
         }
         parallel_runner = KBParallel(self.callback_url)
@@ -274,16 +278,6 @@ class Hisat2(object):
         # alignmentset_name = name of final set object.
         """
         print("Uploading completed alignment set")
-        # aligner_opts = dict()
-        # for k in input_params:
-        #     aligner_opts[k] = str(input_params[k])
-
-        # alignment_items = list()
-        # for ref in alignment_info:
-        #     alignment_items.append({
-        #         "ref": alignment_info[ref]["ref"],
-        #         "label": reads_info[ref].get("condition", None)
-        #     })
         alignment_set = {
             "description": "Alignments using HISAT2, v.{}".format(HISAT_VERSION),
             "items": alignment_items
@@ -295,57 +289,6 @@ class Hisat2(object):
             "data": alignment_set
         })
         return set_info["set_ref"]
-
-        # # the first 3 are parallel: reads_ref_list[i], condition_list[i], and alignment_list[i]
-        # # all refer to the same reads ref
-        # reads_ref_list = list()
-        # condition_list = list()
-        # alignment_list = list()
-        # reads_alignments_ref_map_list = list()
-        # reads_alignments_name_map_list = list()
-        #
-        # for ref in alignment_info:
-        #     reads_ref_list.append(ref)
-        #     condition_list.append(reads_info[ref].get("condition", None))
-        #     alignment_list.append(alignment_info[ref]["ref"])
-        #     reads_alignments_ref_map_list.append({ref: alignment_info[ref]["ref"]})
-        #     reads_alignments_name_map_list.append({
-        #         reads_info[ref]["name"]: alignment_info[ref]["name"]
-        #     })
-        #
-        # alignment_set = {
-        #     "aligned_using": "hisat2",
-        #     "aligner_version": HISAT_VERSION,
-        #     "sampleset_id": input_params['sampleset_ref'],
-        #     "genome_id": input_params['genome_ref'],
-        #     "aligner_opts": aligner_opts,
-        #     "bowtie2_index": "",
-        #     "read_sample_ids": reads_ref_list,
-        #     "condition": condition_list,
-        #     "sample_alignments": alignment_list,
-        #     "mapped_rnaseq_alignments": reads_alignments_name_map_list,
-        #     "mapped_alignments_ids": reads_alignments_ref_map_list
-        # }
-        # provenance = [{
-        #     "input_ws_objects": alignment_list,
-        #     "service": "kb_hisat2",
-        #     "method": "run_hisat2"
-        # }]
-        #
-        # print("Uploading completed alignment set with these parameters:")
-        # as_obj = {
-        #     "type": "KBaseRNASeq.RNASeqAlignmentSet",
-        #     "data": alignment_set,
-        #     "name": alignmentset_name,
-        #     "provenance": provenance
-        # }
-        # pprint(as_obj)
-        # ws = Workspace(self.workspace_url)
-        # as_info = ws.save_objects({
-        #     "workspace": input_params["ws_name"],
-        #     "objects": [as_obj],
-        # })[0]
-        # return "{}/{}/{}".format(as_info[6], as_info[0], as_info[4])
 
     def upload_alignment(self, input_params, reads_info, alignment_file):
         """
@@ -396,13 +339,40 @@ class Hisat2(object):
             })
 
         report_text = "Created {} alignments from the given alignment set.".format(len(alignments))
-        report_info = report_client.create({
+
+        gb = GenomeBrowser(self.callback_url, service_ver="dev")
+        build_gb_params = {
+            "genome_input": {
+                "genome_ref": params["genome_ref"]
+            },
+            "alignment_inputs": list()
+        }
+        for reads_ref in alignments:
+            build_gb_params["alignment_inputs"].append({
+                "alignment_ref": alignments[reads_ref]["ref"]
+            })
+        browser_dir = gb.build_genome_browser(build_gb_params)
+        html_zipped = package_directory(self.callback_url,
+                                        browser_dir,
+                                        'index.html',
+                                        'HISAT2 genome browser')
+        report_params = {
+            "message": report_text,
+            "direct_html_link_index": 0,
+            "html_links": [html_zipped],
+            "report_object_name": "GenomeBrowser-" + str(uuid.uuid4()),
             "workspace_name": params["ws_name"],
-            "report": {
-                "objects_created": created_objects,
-                "text_message": report_text
-            }
-        })
+            "objects_created": created_objects,
+        }
+
+        # report_info = report_client.create({
+        #     "workspace_name": params["ws_name"],
+        #     "report": {
+        #         "objects_created": created_objects,
+        #         "text_message": report_text
+        #     }
+        # })
+        report_info = report_client.create_extended_report(report_params)
         return report_info
 
     def _build_hisat2_cmd(self, idx_prefix, style, files_fwd, files_rev, output_file, exec_params):

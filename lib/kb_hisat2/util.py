@@ -7,6 +7,7 @@ from __future__ import print_function
 import re
 from pprint import pprint
 from Workspace.WorkspaceClient import Workspace
+from DataFileUtil.DataFileUtilClient import DataFileUtil
 
 
 def check_hisat2_parameters(params, ws_url):
@@ -128,3 +129,14 @@ def get_object_names(ref_list, ws_url):
     for i in range(len(info["infos"])):
         name_map[";".join(info["paths"][i])] = info["infos"][i][1]
     return name_map
+
+
+def package_directory(callback_url, dir_path, zip_file_name, zip_file_description):
+    ''' Simple utility for packaging a folder and saving to shock '''
+    dfu = DataFileUtil(callback_url)
+    output = dfu.file_to_shock({'file_path': dir_path,
+                                'make_handle': 0,
+                                'pack': 'zip'})
+    return {'shock_id': output['shock_id'],
+            'name': zip_file_name,
+            'description': zip_file_description}
