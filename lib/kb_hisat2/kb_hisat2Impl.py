@@ -104,15 +104,11 @@ class kb_hisat2:
             for err in param_err:
                 print(err)
             raise ValueError("Errors found in parameters, see logs for details.")
-
         hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder)
-
         # 1. Get list of reads object references
-        # sampleset_ref = params["sampleset_ref"]
         reads_refs = fetch_reads_refs_from_sampleset(
             params["sampleset_ref"], self.workspace_url, self.callback_url
         )
-
         # 2. Run hisat with index and reads.
         alignments = dict()
         output_ref = None
@@ -127,68 +123,13 @@ class kb_hisat2:
         else:
             (alignments, output_ref) = hs_runner.run_batch(reads_refs, params)
 
-            base_output_obj_name = params["alignmentset_name"]
-            # build task list and send it to KBParallel
-            tasks = list()
-            for idx, reads_ref in enumerate(reads_refs):
-                single_param = dict(params)  # need a copy of the params
-                single_param["alignmentset_name"] = "{}_{}".format(base_output_obj_name, idx)
-                single_param["build_report"] = 0
-                single_param["sampleset_ref"] = reads_ref["ref"]
-                if "condition" in reads_ref:
-                    single_param["condition"] = reads_ref["condition"]
-                else:
-                    single_param["condition"] = "unspecified"
-
-                tasks.append({
-                    "module_name": "kb_hisat2",
-                    "function_name": "run_hisat2",
-                    "version": "dev",
-                    "parameters": single_param
-                })
-            batch_run_params = {
-                "tasks": tasks,
-                "runner": "parallel",
-                "concurrent_local_tasks": 3,
-                "concurrent_njsw_tasks": 0,
-                "max_retries": 2
-            }
-            parallel_runner = KBParallel(self.callback_url)
-            results = parallel_runner.run_batch(batch_run_params)["results"]
-            alignment_items = list()
-            for idx, result in enumerate(results):
-                # idx of the result is the same as the idx of the inputs AND reads_refs
-                if result["is_error"] != 0:
-                    raise RuntimeError("Failed a parallel run of HISAT2! {}".format(result["result_package"]["error"]))
-                reads_ref = tasks[idx]["parameters"]["sampleset_ref"]
-                alignment_items.append({
-                    "ref": result["result_package"]["result"][0]["alignment_ref"],
-                    "label": reads_refs[idx].get(
-                        "condition",
-                        params.get("condition",
-                                   "unspecified condition"))
-                })
-                alignments[reads_ref] = {
-                    "ref": result["result_package"]["result"][0]["alignment_ref"],
-                    "name": tasks[idx]["parameters"]["alignmentset_name"]
-                }
-
-            # build the final alignment set
-            output_ref = hs_runner.upload_alignment_set(
-                alignment_items, base_output_obj_name, params["ws_name"]
-            )
-
         if params.get("build_report", 0) == 1:
             report_info = hs_runner.build_report(params, reads_refs, alignments)
             returnVal["report_ref"] = report_info["ref"]
             returnVal["report_name"] = report_info["name"]
         returnVal["alignment_objs"] = alignments
         returnVal["alignment_ref"] = output_ref
-        if len(reads_refs) == 1:
-            returnVal["alignment_name"] = params["alignmentset_name"]
-        else:
-            returnVal["alignment_name"] = base_output_obj_name
-
+        returnVal["alignment_name"] = params["alignmentset_name"]
         #END run_hisat2
 
         # At some point might do deeper type checking...
