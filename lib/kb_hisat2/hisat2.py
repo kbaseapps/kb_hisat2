@@ -31,7 +31,7 @@ from file_util import (
     fetch_reads_from_reference
 )
 
-HISAT_VERSION = "2.0.5"
+HISAT_VERSION = "2.1.0"
 
 
 class Hisat2(object):
