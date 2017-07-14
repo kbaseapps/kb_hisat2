@@ -28,6 +28,7 @@ module kb_hisat2 {
     tailor_alignments = report alignments tailored for either cufflinks or stringtie
     condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
                 ignored for sets.
+    build_report = 1 if we build a report, 0 otherwise. (default 1) (shouldn't be user set - mainly used for subtasks)
 */
     typedef structure {
         string ws_name;
@@ -49,6 +50,7 @@ module kb_hisat2 {
         bool no_spliced_alignment;
         bool transcriptome_mapping_only;
         string tailor_alignments;
+        bool build_report;
     } Hisat2Params;
 
 /*

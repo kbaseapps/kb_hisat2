@@ -182,6 +182,9 @@
             "method" : "run_hisat2",
             "input_mapping" : [
                 {
+                    "constant_value": 1,
+                    "target_property": "build_report"
+                }, {
                     "narrative_system_variable": "workspace",
                     "target_property" : "ws_name"
                 }, {

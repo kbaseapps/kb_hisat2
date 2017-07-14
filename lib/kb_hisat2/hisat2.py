@@ -25,7 +25,11 @@ from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 from KBaseReport.KBaseReportClient import KBaseReport
 from Workspace.WorkspaceClient import Workspace
+from KBParallel.KBParallelClient import KBParallel
 from SetAPI.SetAPIClient import SetAPI
+from file_util import (
+    fetch_reads_from_reference
+)
 
 HISAT_VERSION = "2.0.5"
 
@@ -43,6 +47,98 @@ class Hisat2(object):
         """
         idx_manager = Hisat2IndexManager(self.workspace_url, self.callback_url, self.working_dir)
         return idx_manager.get_hisat2_index(object_ref)
+
+    def run_single(self, reads_ref, params):
+        """
+        Performs a single run of HISAT2 against a single reads reference. The rest of the info
+        is taken from the params dict - see the spec for details.
+        """
+        # 1. Get hisat2 index from genome.
+        #    a. If it exists in cache, use that.
+        #    b. Otherwise, build it
+        idx_prefix = self.build_index(params["genome_ref"])
+
+        # 2. Fetch the reads file and deal make sure input params are correct.
+        reads = fetch_reads_from_reference(reads_ref["ref"], self.callback_url)
+        # if the reads ref came from a different sample set, then we need to drop that
+        # reference inside the reads info object so it can be linked in the alignment
+        if reads_ref["ref"] != params["sampleset_ref"]:
+            reads["sampleset_ref"] = params["sampleset_ref"]
+        # make sure condition info carries over if we have it
+        if "condition" in reads_ref:
+            reads["condition"] = reads_ref["condition"]
+        elif "condition" in params:
+            reads["condition"] = params["condition"]
+        reads["name"] = reads_ref["name"]
+        output_file = "aligned_reads"
+
+        # 3. Finally all set, do the alignment and upload the output.
+        alignment_file = self.run_hisat2(
+            idx_prefix, reads, params, output_file=output_file
+        )
+        output_ref = self.upload_alignment(params, reads, alignment_file)
+        alignments = dict()
+        alignments[reads_ref["ref"]] = {
+            "ref": output_ref,
+            "name": params["alignmentset_name"]
+        }
+        os.remove(reads["file_fwd"])
+        if "file_rev" in reads:
+            os.remove(reads["file_rev"])
+        return (alignments, output_ref)
+
+    def run_batch(self, reads_refs, params):
+        base_output_obj_name = params["alignmentset_name"]
+        # build task list and send it to KBParallel
+        tasks = list()
+        for idx, reads_ref in enumerate(reads_refs):
+            single_param = dict(params)  # need a copy of the params
+            single_param["alignmentset_name"] = "{}_{}".format(base_output_obj_name, idx)
+            single_param["build_report"] = 0
+            single_param["sampleset_ref"] = reads_ref["ref"]
+            if "condition" in reads_ref:
+                single_param["condition"] = reads_ref["condition"]
+            else:
+                single_param["condition"] = "unspecified"
+
+            tasks.append({
+                "module_name": "kb_hisat2",
+                "function_name": "run_hisat2",
+                "version": "dev",
+                "parameters": single_param
+            })
+        batch_run_params = {
+            "tasks": tasks,
+            "runner": "parallel",
+            "concurrent_local_tasks": 3,
+            "concurrent_njsw_tasks": 0,
+            "max_retries": 2
+        }
+        parallel_runner = KBParallel(self.callback_url)
+        results = parallel_runner.run_batch(batch_run_params)["results"]
+        alignment_items = list()
+        alignments = dict()
+        for idx, result in enumerate(results):
+            # idx of the result is the same as the idx of the inputs AND reads_refs
+            if result["is_error"] != 0:
+                raise RuntimeError("Failed a parallel run of HISAT2! {}".format(result["result_package"]["error"]))
+            reads_ref = tasks[idx]["parameters"]["sampleset_ref"]
+            alignment_items.append({
+                "ref": result["result_package"]["result"][0]["alignment_ref"],
+                "label": reads_refs[idx].get(
+                    "condition",
+                    params.get("condition",
+                               "unspecified condition"))
+            })
+            alignments[reads_ref] = {
+                "ref": result["result_package"]["result"][0]["alignment_ref"],
+                "name": tasks[idx]["parameters"]["alignmentset_name"]
+            }
+        # build the final alignment set
+        output_ref = self.upload_alignment_set(
+            alignment_items, base_output_obj_name, params["ws_name"]
+        )
+        return (alignments, output_ref)
 
     def run_hisat2(self, idx_prefix, reads, input_params, output_file="aligned_reads"):
         """
@@ -151,30 +247,50 @@ class Hisat2(object):
         print("Done!")
         return alignment_ref
 
-    def upload_alignment_set(self, input_params, alignment_info, reads_info, alignmentset_name):
+    # def upload_alignment_set(self, input_params, alignment_info, reads_info, alignmentset_name):
+    def upload_alignment_set(self, alignment_items, alignmentset_name, ws_name):
         """
         Compiles and saves a set of alignment references (+ other stuff) into a
         KBaseRNASeq.RNASeqAlignmentSet.
         Returns the reference to the new alignment set.
+
+        alignment_items: [{
+            "ref": alignment_ref,
+            "label": condition label.
+        }]
+        # alignment_info = dict like this:
+        # {
+        #     reads_ref: {
+        #         "ref": alignment_ref
+        #     }
+        # }
+        # reads_info = dict like this:
+        # {
+        #     reads_ref: {
+        #         "condition": "some condition"
+        #     }
+        # }
+        # input_params = global input params to HISAT2, also has ws_name for the target workspace.
+        # alignmentset_name = name of final set object.
         """
         print("Uploading completed alignment set")
-        aligner_opts = dict()
-        for k in input_params:
-            aligner_opts[k] = str(input_params[k])
+        # aligner_opts = dict()
+        # for k in input_params:
+        #     aligner_opts[k] = str(input_params[k])
 
-        alignment_items = list()
-        for ref in alignment_info:
-            alignment_items.append({
-                "ref": alignment_info[ref]["ref"],
-                "label": reads_info[ref].get("condition", None)
-            })
+        # alignment_items = list()
+        # for ref in alignment_info:
+        #     alignment_items.append({
+        #         "ref": alignment_info[ref]["ref"],
+        #         "label": reads_info[ref].get("condition", None)
+        #     })
         alignment_set = {
             "description": "Alignments using HISAT2, v.{}".format(HISAT_VERSION),
             "items": alignment_items
         }
         set_api = SetAPI(self.callback_url)
         set_info = set_api.save_reads_alignment_set_v1({
-            "workspace": input_params["ws_name"],
+            "workspace": ws_name,
             "output_object_name": alignmentset_name,
             "data": alignment_set
         })

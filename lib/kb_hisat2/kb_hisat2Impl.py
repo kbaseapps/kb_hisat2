@@ -11,6 +11,8 @@ from file_util import (
     fetch_reads_refs_from_sampleset
 )
 from kb_hisat2.hisat2 import Hisat2
+from KBParallel.KBParallelClient import KBParallel
+from pprint import pprint
 #END_HEADER
 
 
@@ -90,7 +92,10 @@ class kb_hisat2:
         # ctx is the context object
         # return variables are: returnVal
         #BEGIN run_hisat2
-        returnVal = dict()
+        returnVal = {
+            "report_ref": None,
+            "report_name": None
+        }
 
         # steps to cover.
         # 0. check the parameters
@@ -99,69 +104,32 @@ class kb_hisat2:
             for err in param_err:
                 print(err)
             raise ValueError("Errors found in parameters, see logs for details.")
-
         hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder)
-        # 1. Get hisat2 index from genome.
-        #    a. If it exists in cache, use that.
-        #    b. Otherwise, build it
-        idx_prefix = hs_runner.build_index(params["genome_ref"])
-
-        # 2. Get list of reads object references
-        sampleset_ref = params["sampleset_ref"]
+        # 1. Get list of reads object references
         reads_refs = fetch_reads_refs_from_sampleset(
             params["sampleset_ref"], self.workspace_url, self.callback_url
         )
-
-        # 3. Run hisat with index and reads.
+        # 2. Run hisat with index and reads.
         alignments = dict()
-        base_output_obj_name = params["alignmentset_name"]
-        reads_info = dict()
         output_ref = None
-        for idx, reads_ref in enumerate(reads_refs):
-            reads = fetch_reads_from_reference(reads_ref["ref"], self.callback_url)
-            # if the reads ref came from a different sample set, then we need to drop that
-            # reference inside the reads info object so it can be linked in the alignment
-            if reads_ref["ref"] != sampleset_ref:
-                reads["sampleset_ref"] = sampleset_ref
-            # make sure condition info carries over if we have it
-            if "condition" in reads_ref:
-                reads["condition"] = reads_ref["condition"]
-            elif "condition" in params:
-                reads["condition"] = params["condition"]
-            reads["name"] = reads_ref["name"]
-            output_file = "aligned_reads_{}".format(idx)
-            alignment_file = hs_runner.run_hisat2(
-                idx_prefix, reads, params, output_file=output_file
-            )
-            if len(reads_refs) > 1:
-                params["alignmentset_name"] = "{}_{}".format(base_output_obj_name, (idx+1))
-            # if there's only one, this will be the only output_ref made and we can use it.
-            # otherwise, there's another step later to get the alignmentset ref
-            output_ref = hs_runner.upload_alignment(params, reads, alignment_file)
-            alignments[reads_ref["ref"]] = {
-                "ref": output_ref,
-                "name": params["alignmentset_name"]
-            }
-            reads_info[reads_ref["ref"]] = reads
-            # delete reads file(s) to free some space
-            os.remove(reads["file_fwd"])
-            if "file_rev" in reads:
-                os.remove(reads["file_rev"])
 
-        # if we have multiple alignments, we need to make (and return) an alignment set.
-        if len(reads_refs) > 1:
-            output_ref = hs_runner.upload_alignment_set(
-                params, alignments, reads_info, base_output_obj_name
-            )
-
-        report_info = hs_runner.build_report(params, reads_refs, alignments)
-        returnVal["report_ref"] = report_info["ref"]
-        returnVal["report_name"] = report_info["name"]
-        returnVal["alignment_objs"] = alignments
+        # If there's only one, run it locally right now.
+        # If there's more than one:
+        #  1. make a list of tasks to send to KBParallel.
+        #  2. add a flag to not make a report for each subtask.
+        #  3. make the report when it's all done.
         if len(reads_refs) == 1:
-            returnVal["alignment_ref"] = params["alignmentset_name"]
+            (alignments, output_ref) = hs_runner.run_single(reads_refs[0], params)
         else:
-            returnVal["alignment_ref"] = base_output_obj_name
+            (alignments, output_ref) = hs_runner.run_batch(reads_refs, params)
+
+        if params.get("build_report", 0) == 1:
+            report_info = hs_runner.build_report(params, reads_refs, alignments)
+            returnVal["report_ref"] = report_info["ref"]
+            returnVal["report_name"] = report_info["name"]
+        returnVal["alignment_objs"] = alignments
+        returnVal["alignment_ref"] = output_ref
+        returnVal["alignment_name"] = params["alignmentset_name"]
         #END run_hisat2
 
         # At some point might do deeper type checking...
