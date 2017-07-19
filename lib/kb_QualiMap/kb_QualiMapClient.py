@@ -22,11 +22,11 @@ class kb_QualiMap(object):
     def __init__(
             self, url=None, timeout=30 * 60, user_id=None,
             password=None, token=None, ignore_authrc=False,
-            trust_all_ssl_certificates=False,
+            trust_all_ssl_certificates=False, service_ver=None,
             auth_svc='https://kbase.us/services/authorization/Sessions/Login'):
         if url is None:
             raise ValueError('A url is required')
-        self._service_ver = None
+        self._service_ver = service_ver
         self._client = _BaseClient(
             url, timeout=timeout, user_id=user_id, password=password,
             token=token, ignore_authrc=ignore_authrc,
