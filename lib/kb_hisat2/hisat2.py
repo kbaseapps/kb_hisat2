@@ -344,7 +344,7 @@ class Hisat2(object):
         qm = kb_QualiMap(self.callback_url, service_ver="dev")
         qc_ref = alignment_set
         if qc_ref is None:  # then there's only one alignment...
-            qc_ref = alignments[0]["ref"]
+            qc_ref = alignments[alignments.keys()[0]]["ref"]
         bamqc_params = {
             "create_report": 0,
             "input_ref": qc_ref

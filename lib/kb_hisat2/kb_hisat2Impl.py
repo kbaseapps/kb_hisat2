@@ -118,13 +118,15 @@ class kb_hisat2:
         #  1. make a list of tasks to send to KBParallel.
         #  2. add a flag to not make a report for each subtask.
         #  3. make the report when it's all done.
+        alignment_set_ref = None
         if len(reads_refs) == 1:
             (alignments, output_ref) = hs_runner.run_single(reads_refs[0], params)
         else:
-            (alignments, output_ref) = hs_runner.run_batch(reads_refs, params)
+            (alignments, alignment_set_ref) = hs_runner.run_batch(reads_refs, params)
 
         if params.get("build_report", 0) == 1:
-            report_info = hs_runner.build_report(params, reads_refs, alignments)
+            report_info = hs_runner.build_report(params, reads_refs, alignments,
+                                                 alignment_set=alignment_set_ref)
             returnVal["report_ref"] = report_info["ref"]
             returnVal["report_name"] = report_info["name"]
         returnVal["alignment_objs"] = alignments
