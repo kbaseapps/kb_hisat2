@@ -363,38 +363,6 @@ class Hisat2(object):
             "objects_created": created_objects
         }
 
-        # gb = GenomeBrowser(self.callback_url, service_ver="dev")
-        # build_gb_params = {
-        #     "genome_input": {
-        #         "genome_ref": params["genome_ref"]
-        #     },
-        #     "alignment_inputs": list()
-        # }
-        # for reads_ref in alignments:
-        #     build_gb_params["alignment_inputs"].append({
-        #         "alignment_ref": alignments[reads_ref]["ref"]
-        #     })
-        # browser_dir = gb.build_genome_browser(build_gb_params)["browser_dir"]
-        # html_zipped = package_directory(self.callback_url,
-        #                                 browser_dir,
-        #                                 'index.html',
-        #                                 'HISAT2 genome browser')
-        # report_params = {
-        #     "message": report_text,
-        #     "direct_html_link_index": 0,
-        #     "html_links": [html_zipped],
-        #     "report_object_name": "GenomeBrowser-" + str(uuid.uuid4()),
-        #     "workspace_name": params["ws_name"],
-        #     "objects_created": created_objects
-        # }
-
-        # report_info = report_client.create({
-        #     "workspace_name": params["ws_name"],
-        #     "report": {
-        #         "objects_created": created_objects,
-        #         "text_message": report_text
-        #     }
-        # })
         report_info = report_client.create_extended_report(report_params)
         return report_info
 
