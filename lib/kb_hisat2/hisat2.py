@@ -25,7 +25,8 @@ from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 from KBaseReport.KBaseReportClient import KBaseReport
 from KBParallel.KBParallelClient import KBParallel
-from kb_GenomeBrowser.kb_GenomeBrowserClient import kb_GenomeBrowser as GenomeBrowser
+# from kb_GenomeBrowser.kb_GenomeBrowserClient import kb_GenomeBrowser as GenomeBrowser
+from kb_QualiMap.kb_QualiMapClient import kb_QualiMap
 from SetAPI.SetAPIClient import SetAPI
 from file_util import (
     fetch_reads_from_reference
@@ -340,38 +341,28 @@ class Hisat2(object):
 
         report_text = "Created {} alignments from the given alignment set.".format(len(alignments))
 
-        gb = GenomeBrowser(self.callback_url, service_ver="dev")
-        build_gb_params = {
-            "genome_input": {
-                "genome_ref": params["genome_ref"]
-            },
-            "alignment_inputs": list()
+        qm = kb_QualiMap(self.callback_url, service_ver="dev")
+        qc_ref = alignment_set
+        if qc_ref is None:  # then there's only one alignment...
+            qc_ref = alignments[0]["ref"]
+        bamqc_params = {
+            "create_report": 0,
+            "input_ref": qc_ref
         }
-        for reads_ref in alignments:
-            build_gb_params["alignment_inputs"].append({
-                "alignment_ref": alignments[reads_ref]["ref"]
-            })
-        browser_dir = gb.build_genome_browser(build_gb_params)["browser_dir"]
+        result = qm.run_bamqc(bamqc_params)
         html_zipped = package_directory(self.callback_url,
-                                        browser_dir,
+                                        result["qc_result_folder_path"],
                                         'index.html',
-                                        'HISAT2 genome browser')
+                                        'QualiMap Results')
         report_params = {
             "message": report_text,
             "direct_html_link_index": 0,
             "html_links": [html_zipped],
-            "report_object_name": "GenomeBrowser-" + str(uuid.uuid4()),
+            "report_object_name": "QualiMap-" + str(uuid.uuid4()),
             "workspace_name": params["ws_name"],
             "objects_created": created_objects
         }
 
-        # report_info = report_client.create({
-        #     "workspace_name": params["ws_name"],
-        #     "report": {
-        #         "objects_created": created_objects,
-        #         "text_message": report_text
-        #     }
-        # })
         report_info = report_client.create_extended_report(report_params)
         return report_info
 
