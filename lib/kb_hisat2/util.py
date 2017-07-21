@@ -126,8 +126,9 @@ def get_object_names(ref_list, ws_url):
     info = ws.get_object_info3({"objects": obj_ids})
     name_map = dict()
     # might be in a data palette, so we can't just use the ref.
+    # we already have the refs as passed previously, so use those for mapping.
     for i in range(len(info["infos"])):
-        name_map[";".join(info["paths"][i])] = info["infos"][i][1]
+        name_map[ref_list[i]] = info["infos"][i][1]
     return name_map
 
 
