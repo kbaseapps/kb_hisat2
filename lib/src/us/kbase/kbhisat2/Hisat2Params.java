@@ -16,25 +16,32 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * <pre>
  * Input for hisat2.
  * ws_name = the workspace name provided by the narrative for storing output.
- * sampleset_ref = the workspace reference for the sampleset of reads to align.
+ * sampleset_ref = the workspace reference for either the reads library or set of reads libraries to align.
+ *               accepted types: KBaseSets.ReadsSet, KBaseRNASeq.RNASeqSampleSet,
+ *                               KBaseAssembly.SingleEndLibrary, KBaseAssembly.PairedEndLibrary,
+ *                               KBaseFile.SingleEndLibrary, KBaseFile.PairedEndLibrary
  * genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
- * alignmentset_name = the name of the alignment set object to create.
- * num_threads = the number of threads to tell hisat to use (NOT USER SET?)
+ * num_threads = the number of threads to tell hisat to use (default 2)
  * quality_score = one of phred33 or phred64
- * skip =
- * trim3 =
- * trim5 =
- * np =
- * minins =
- * maxins =
- * orientation =
- * min_intron_length =
- * max_intron_length =
- * no_spliced_alignment =
- * transcriptome_mapping_only =
- * tailor_alignments =
+ * skip = number of initial reads to skip (default 0)
+ * trim3 = number of bases to trim off of the 3' end of each read (default 0)
+ * trim5 = number of bases to trim off of the 5' end of each read (default 0)
+ * np = penalty for positions wither the read and/or the reference are an ambiguous character (default 1)
+ * minins = minimum fragment length for valid paired-end alignments. only used if no_spliced_alignment is true
+ * maxins = maximum fragment length for valid paired-end alignments. only used if no_spliced_alignment is true
+ * orientation = orientation of each member of paired-end reads. valid values = "fr, rf, ff"
+ * min_intron_length = sets minimum intron length (default 20)
+ * max_intron_length = sets maximum intron length (default 500,000)
+ * no_spliced_alignment = disable spliced alignment
+ * transcriptome_mapping_only = only report alignments with known transcripts
+ * tailor_alignments = report alignments tailored for either cufflinks or stringtie
  * condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
  *             ignored for sets.
+ * build_report = 1 if we build a report, 0 otherwise. (default 1) (shouldn't be user set - mainly used for subtasks)
+ * output naming:
+ *     alignment_suffix is appended to the name of each individual reads object name (just the one if
+ *     it's a simple input of a single reads library, but to each if it's a set)
+ *     alignmentset_suffix is appended to the name of the reads set, if a set is passed.
  * </pre>
  * 
  */
@@ -42,7 +49,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
     "ws_name",
-    "alignmentset_name",
+    "alignment_suffix",
+    "alignmentset_suffix",
     "sampleset_ref",
     "condition",
     "genome_ref",
@@ -59,14 +67,17 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "max_intron_length",
     "no_spliced_alignment",
     "transcriptome_mapping_only",
-    "tailor_alignments"
+    "tailor_alignments",
+    "build_report"
 })
 public class Hisat2Params {
 
     @JsonProperty("ws_name")
     private String wsName;
-    @JsonProperty("alignmentset_name")
-    private String alignmentsetName;
+    @JsonProperty("alignment_suffix")
+    private String alignmentSuffix;
+    @JsonProperty("alignmentset_suffix")
+    private String alignmentsetSuffix;
     @JsonProperty("sampleset_ref")
     private String samplesetRef;
     @JsonProperty("condition")
@@ -101,6 +112,8 @@ public class Hisat2Params {
     private Long transcriptomeMappingOnly;
     @JsonProperty("tailor_alignments")
     private String tailorAlignments;
+    @JsonProperty("build_report")
+    private Long buildReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("ws_name")
@@ -118,18 +131,33 @@ public class Hisat2Params {
         return this;
     }
 
-    @JsonProperty("alignmentset_name")
-    public String getAlignmentsetName() {
-        return alignmentsetName;
+    @JsonProperty("alignment_suffix")
+    public String getAlignmentSuffix() {
+        return alignmentSuffix;
     }
 
-    @JsonProperty("alignmentset_name")
-    public void setAlignmentsetName(String alignmentsetName) {
-        this.alignmentsetName = alignmentsetName;
+    @JsonProperty("alignment_suffix")
+    public void setAlignmentSuffix(String alignmentSuffix) {
+        this.alignmentSuffix = alignmentSuffix;
     }
 
-    public Hisat2Params withAlignmentsetName(String alignmentsetName) {
-        this.alignmentsetName = alignmentsetName;
+    public Hisat2Params withAlignmentSuffix(String alignmentSuffix) {
+        this.alignmentSuffix = alignmentSuffix;
+        return this;
+    }
+
+    @JsonProperty("alignmentset_suffix")
+    public String getAlignmentsetSuffix() {
+        return alignmentsetSuffix;
+    }
+
+    @JsonProperty("alignmentset_suffix")
+    public void setAlignmentsetSuffix(String alignmentsetSuffix) {
+        this.alignmentsetSuffix = alignmentsetSuffix;
+    }
+
+    public Hisat2Params withAlignmentsetSuffix(String alignmentsetSuffix) {
+        this.alignmentsetSuffix = alignmentsetSuffix;
         return this;
     }
 
@@ -388,6 +416,21 @@ public class Hisat2Params {
         return this;
     }
 
+    @JsonProperty("build_report")
+    public Long getBuildReport() {
+        return buildReport;
+    }
+
+    @JsonProperty("build_report")
+    public void setBuildReport(Long buildReport) {
+        this.buildReport = buildReport;
+    }
+
+    public Hisat2Params withBuildReport(Long buildReport) {
+        this.buildReport = buildReport;
+        return this;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -400,7 +443,7 @@ public class Hisat2Params {
 
     @Override
     public String toString() {
-        return ((((((((((((((((((((((((((((((((((((((((("Hisat2Params"+" [wsName=")+ wsName)+", alignmentsetName=")+ alignmentsetName)+", samplesetRef=")+ samplesetRef)+", condition=")+ condition)+", genomeRef=")+ genomeRef)+", numThreads=")+ numThreads)+", qualityScore=")+ qualityScore)+", skip=")+ skip)+", trim3=")+ trim3)+", trim5=")+ trim5)+", np=")+ np)+", minins=")+ minins)+", maxins=")+ maxins)+", orientation=")+ orientation)+", minIntronLength=")+ minIntronLength)+", maxIntronLength=")+ maxIntronLength)+", noSplicedAlignment=")+ noSplicedAlignment)+", transcriptomeMappingOnly=")+ transcriptomeMappingOnly)+", tailorAlignments=")+ tailorAlignments)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((((((((((((((((((((((((((((((("Hisat2Params"+" [wsName=")+ wsName)+", alignmentSuffix=")+ alignmentSuffix)+", alignmentsetSuffix=")+ alignmentsetSuffix)+", samplesetRef=")+ samplesetRef)+", condition=")+ condition)+", genomeRef=")+ genomeRef)+", numThreads=")+ numThreads)+", qualityScore=")+ qualityScore)+", skip=")+ skip)+", trim3=")+ trim3)+", trim5=")+ trim5)+", np=")+ np)+", minins=")+ minins)+", maxins=")+ maxins)+", orientation=")+ orientation)+", minIntronLength=")+ minIntronLength)+", maxIntronLength=")+ maxIntronLength)+", noSplicedAlignment=")+ noSplicedAlignment)+", transcriptomeMappingOnly=")+ transcriptomeMappingOnly)+", tailorAlignments=")+ tailorAlignments)+", buildReport=")+ buildReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

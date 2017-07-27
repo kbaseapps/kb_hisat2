@@ -123,7 +123,8 @@ $params is a kb_hisat2.Hisat2Params
 $return is a kb_hisat2.Hisat2Output
 Hisat2Params is a reference to a hash where the following keys are defined:
 	ws_name has a value which is a string
-	alignmentset_name has a value which is a string
+	alignment_suffix has a value which is a string
+	alignmentset_suffix has a value which is a string
 	sampleset_ref has a value which is a string
 	condition has a value which is a string
 	genome_ref has a value which is a string
@@ -141,11 +142,16 @@ Hisat2Params is a reference to a hash where the following keys are defined:
 	no_spliced_alignment has a value which is a kb_hisat2.bool
 	transcriptome_mapping_only has a value which is a kb_hisat2.bool
 	tailor_alignments has a value which is a string
+	build_report has a value which is a kb_hisat2.bool
 bool is an int
 Hisat2Output is a reference to a hash where the following keys are defined:
 	report_name has a value which is a string
 	report_ref has a value which is a string
+	alignmentset_ref has a value which is a string
+	alignment_objs has a value which is a reference to a hash where the key is a string and the value is a kb_hisat2.AlignmentObj
+AlignmentObj is a reference to a hash where the following keys are defined:
 	alignment_ref has a value which is a string
+	name has a value which is a string
 
 </pre>
 
@@ -157,7 +163,8 @@ $params is a kb_hisat2.Hisat2Params
 $return is a kb_hisat2.Hisat2Output
 Hisat2Params is a reference to a hash where the following keys are defined:
 	ws_name has a value which is a string
-	alignmentset_name has a value which is a string
+	alignment_suffix has a value which is a string
+	alignmentset_suffix has a value which is a string
 	sampleset_ref has a value which is a string
 	condition has a value which is a string
 	genome_ref has a value which is a string
@@ -175,11 +182,16 @@ Hisat2Params is a reference to a hash where the following keys are defined:
 	no_spliced_alignment has a value which is a kb_hisat2.bool
 	transcriptome_mapping_only has a value which is a kb_hisat2.bool
 	tailor_alignments has a value which is a string
+	build_report has a value which is a kb_hisat2.bool
 bool is an int
 Hisat2Output is a reference to a hash where the following keys are defined:
 	report_name has a value which is a string
 	report_ref has a value which is a string
+	alignmentset_ref has a value which is a string
+	alignment_objs has a value which is a reference to a hash where the key is a string and the value is a kb_hisat2.AlignmentObj
+AlignmentObj is a reference to a hash where the following keys are defined:
 	alignment_ref has a value which is a string
+	name has a value which is a string
 
 
 =end text
@@ -368,25 +380,32 @@ an int
 
 Input for hisat2.
 ws_name = the workspace name provided by the narrative for storing output.
-sampleset_ref = the workspace reference for the sampleset of reads to align.
+sampleset_ref = the workspace reference for either the reads library or set of reads libraries to align.
+              accepted types: KBaseSets.ReadsSet, KBaseRNASeq.RNASeqSampleSet,
+                              KBaseAssembly.SingleEndLibrary, KBaseAssembly.PairedEndLibrary,
+                              KBaseFile.SingleEndLibrary, KBaseFile.PairedEndLibrary
 genome_ref = the workspace reference for the reference genome that HISAT2 will align against.
-alignmentset_name = the name of the alignment set object to create.
-num_threads = the number of threads to tell hisat to use (NOT USER SET?)
+num_threads = the number of threads to tell hisat to use (default 2)
 quality_score = one of phred33 or phred64
-skip =
-trim3 =
-trim5 =
-np =
-minins =
-maxins =
-orientation =
-min_intron_length =
-max_intron_length =
-no_spliced_alignment =
-transcriptome_mapping_only =
-tailor_alignments =
+skip = number of initial reads to skip (default 0)
+trim3 = number of bases to trim off of the 3' end of each read (default 0)
+trim5 = number of bases to trim off of the 5' end of each read (default 0)
+np = penalty for positions wither the read and/or the reference are an ambiguous character (default 1)
+minins = minimum fragment length for valid paired-end alignments. only used if no_spliced_alignment is true
+maxins = maximum fragment length for valid paired-end alignments. only used if no_spliced_alignment is true
+orientation = orientation of each member of paired-end reads. valid values = "fr, rf, ff"
+min_intron_length = sets minimum intron length (default 20)
+max_intron_length = sets maximum intron length (default 500,000)
+no_spliced_alignment = disable spliced alignment
+transcriptome_mapping_only = only report alignments with known transcripts
+tailor_alignments = report alignments tailored for either cufflinks or stringtie
 condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
             ignored for sets.
+build_report = 1 if we build a report, 0 otherwise. (default 1) (shouldn't be user set - mainly used for subtasks)
+output naming:
+    alignment_suffix is appended to the name of each individual reads object name (just the one if
+    it's a simple input of a single reads library, but to each if it's a set)
+    alignmentset_suffix is appended to the name of the reads set, if a set is passed.
 
 
 =item Definition
@@ -396,7 +415,8 @@ condition = a string stating the experimental condition of the reads. REQUIRED f
 <pre>
 a reference to a hash where the following keys are defined:
 ws_name has a value which is a string
-alignmentset_name has a value which is a string
+alignment_suffix has a value which is a string
+alignmentset_suffix has a value which is a string
 sampleset_ref has a value which is a string
 condition has a value which is a string
 genome_ref has a value which is a string
@@ -414,6 +434,7 @@ max_intron_length has a value which is an int
 no_spliced_alignment has a value which is a kb_hisat2.bool
 transcriptome_mapping_only has a value which is a kb_hisat2.bool
 tailor_alignments has a value which is a string
+build_report has a value which is a kb_hisat2.bool
 
 </pre>
 
@@ -423,7 +444,8 @@ tailor_alignments has a value which is a string
 
 a reference to a hash where the following keys are defined:
 ws_name has a value which is a string
-alignmentset_name has a value which is a string
+alignment_suffix has a value which is a string
+alignmentset_suffix has a value which is a string
 sampleset_ref has a value which is a string
 condition has a value which is a string
 genome_ref has a value which is a string
@@ -441,6 +463,46 @@ max_intron_length has a value which is an int
 no_spliced_alignment has a value which is a kb_hisat2.bool
 transcriptome_mapping_only has a value which is a kb_hisat2.bool
 tailor_alignments has a value which is a string
+build_report has a value which is a kb_hisat2.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 AlignmentObj
+
+=over 4
+
+
+
+=item Description
+
+Created alignment object returned.
+alignment_ref = the workspace reference of the new alignment object
+name = the name of the new object, for convenience.
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+alignment_ref has a value which is a string
+name has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+alignment_ref has a value which is a string
+name has a value which is a string
 
 
 =end text
@@ -458,7 +520,9 @@ tailor_alignments has a value which is a string
 =item Description
 
 Output for hisat2.
-alignment_ref: can be either an Alignment or AlignmentSet, depending on inputs.
+alignmentset_ref if an alignment set is created
+alignment_objs for each individual alignment created. The keys are the references to the reads
+    object being aligned.
 
 
 =item Definition
@@ -469,7 +533,8 @@ alignment_ref: can be either an Alignment or AlignmentSet, depending on inputs.
 a reference to a hash where the following keys are defined:
 report_name has a value which is a string
 report_ref has a value which is a string
-alignment_ref has a value which is a string
+alignmentset_ref has a value which is a string
+alignment_objs has a value which is a reference to a hash where the key is a string and the value is a kb_hisat2.AlignmentObj
 
 </pre>
 
@@ -480,7 +545,8 @@ alignment_ref has a value which is a string
 a reference to a hash where the following keys are defined:
 report_name has a value which is a string
 report_ref has a value which is a string
-alignment_ref has a value which is a string
+alignmentset_ref has a value which is a string
+alignment_objs has a value which is a reference to a hash where the key is a string and the value is a kb_hisat2.AlignmentObj
 
 
 =end text

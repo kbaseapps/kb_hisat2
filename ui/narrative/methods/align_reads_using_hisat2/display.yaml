@@ -30,12 +30,17 @@ parameters :
         ui-name : |
             Genome
         short-hint : |
-            Select the Genome to align the reads
-    alignment_output :
+            Select the Genome to align the reads.
+    alignmentset_suffix :
         ui-name : |
-            Alignment Output
+            Alignment Set Suffix
         short-hint : |
-            Name the alignment object
+            Provide a suffix that will appended to the name of the set of reads used as input.
+    alignment_suffix :
+        ui-name : |
+            Alignment Suffix
+        short-hint : |
+            Provide a suffix that will be appended to the name of each reads library aligned.
     quality_score :
         ui-name : |
             Alignment Quality Score Type

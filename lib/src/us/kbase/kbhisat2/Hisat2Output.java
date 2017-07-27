@@ -15,7 +15,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * <p>Original spec-file type: Hisat2Output</p>
  * <pre>
  * Output for hisat2.
- * alignment_ref: can be either an Alignment or AlignmentSet, depending on inputs.
+ * alignmentset_ref if an alignment set is created
+ * alignment_objs for each individual alignment created. The keys are the references to the reads
+ *     object being aligned.
  * </pre>
  * 
  */
@@ -24,76 +26,94 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "report_name",
     "report_ref",
-    "alignment_ref"
+    "alignmentset_ref",
+    "alignment_objs"
 })
 public class Hisat2Output {
 
     @JsonProperty("report_name")
-    private String reportName;
+    private java.lang.String reportName;
     @JsonProperty("report_ref")
-    private String reportRef;
-    @JsonProperty("alignment_ref")
-    private String alignmentRef;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private java.lang.String reportRef;
+    @JsonProperty("alignmentset_ref")
+    private java.lang.String alignmentsetRef;
+    @JsonProperty("alignment_objs")
+    private Map<String, AlignmentObj> alignmentObjs;
+    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
 
     @JsonProperty("report_name")
-    public String getReportName() {
+    public java.lang.String getReportName() {
         return reportName;
     }
 
     @JsonProperty("report_name")
-    public void setReportName(String reportName) {
+    public void setReportName(java.lang.String reportName) {
         this.reportName = reportName;
     }
 
-    public Hisat2Output withReportName(String reportName) {
+    public Hisat2Output withReportName(java.lang.String reportName) {
         this.reportName = reportName;
         return this;
     }
 
     @JsonProperty("report_ref")
-    public String getReportRef() {
+    public java.lang.String getReportRef() {
         return reportRef;
     }
 
     @JsonProperty("report_ref")
-    public void setReportRef(String reportRef) {
+    public void setReportRef(java.lang.String reportRef) {
         this.reportRef = reportRef;
     }
 
-    public Hisat2Output withReportRef(String reportRef) {
+    public Hisat2Output withReportRef(java.lang.String reportRef) {
         this.reportRef = reportRef;
         return this;
     }
 
-    @JsonProperty("alignment_ref")
-    public String getAlignmentRef() {
-        return alignmentRef;
+    @JsonProperty("alignmentset_ref")
+    public java.lang.String getAlignmentsetRef() {
+        return alignmentsetRef;
     }
 
-    @JsonProperty("alignment_ref")
-    public void setAlignmentRef(String alignmentRef) {
-        this.alignmentRef = alignmentRef;
+    @JsonProperty("alignmentset_ref")
+    public void setAlignmentsetRef(java.lang.String alignmentsetRef) {
+        this.alignmentsetRef = alignmentsetRef;
     }
 
-    public Hisat2Output withAlignmentRef(String alignmentRef) {
-        this.alignmentRef = alignmentRef;
+    public Hisat2Output withAlignmentsetRef(java.lang.String alignmentsetRef) {
+        this.alignmentsetRef = alignmentsetRef;
+        return this;
+    }
+
+    @JsonProperty("alignment_objs")
+    public Map<String, AlignmentObj> getAlignmentObjs() {
+        return alignmentObjs;
+    }
+
+    @JsonProperty("alignment_objs")
+    public void setAlignmentObjs(Map<String, AlignmentObj> alignmentObjs) {
+        this.alignmentObjs = alignmentObjs;
+    }
+
+    public Hisat2Output withAlignmentObjs(Map<String, AlignmentObj> alignmentObjs) {
+        this.alignmentObjs = alignmentObjs;
         return this;
     }
 
     @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
+    public Map<java.lang.String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }
 
     @JsonAnySetter
-    public void setAdditionalProperties(String name, Object value) {
+    public void setAdditionalProperties(java.lang.String name, Object value) {
         this.additionalProperties.put(name, value);
     }
 
     @Override
-    public String toString() {
-        return ((((((((("Hisat2Output"+" [reportName=")+ reportName)+", reportRef=")+ reportRef)+", alignmentRef=")+ alignmentRef)+", additionalProperties=")+ additionalProperties)+"]");
+    public java.lang.String toString() {
+        return ((((((((((("Hisat2Output"+" [reportName=")+ reportName)+", reportRef=")+ reportRef)+", alignmentsetRef=")+ alignmentsetRef)+", alignmentObjs=")+ alignmentObjs)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

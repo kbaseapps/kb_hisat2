@@ -42,9 +42,9 @@ def check_hisat2_parameters(params, ws_url):
     if "ws_name" not in params or not valid_string(params["ws_name"]):
         errors.append("Parameter ws_name must be a valid workspace "
                       "name, not {}".format(params.get("ws_name", None)))
-    if "alignmentset_name" not in params or not valid_string(params["alignmentset_name"]):
-        errors.append("Parameter alignmentset_name must be a valid Workspace object string, "
-                      "not {}".format(params.get("alignmentset_name", None)))
+    if "alignment_suffix" not in params or not valid_string(params["alignment_suffix"]):
+        errors.append("Parameter alignment_suffix must be a valid Workspace object string, "
+                      "not {}".format(params.get("alignment_suffix", None)))
     if "sampleset_ref" not in params or not valid_string(params["sampleset_ref"], is_ref=True):
         errors.append("Parameter sampleset_ref must be a valid Workspace object reference, "
                       "not {}".format(params.get("sampleset_ref", None)))
@@ -78,6 +78,10 @@ def check_reference(ref):
     return True
 
 
+def is_set(ref, ws_url):
+    return check_ref_type(ref, ["sampleset", "readsset"], ws_url)
+
+
 def check_ref_type(ref, allowed_types, ws_url):
     """
     Validates the object type of ref against the list of allowed types. If it passes, this
@@ -85,11 +89,11 @@ def check_ref_type(ref, allowed_types, ws_url):
     Really, all this does is verify that at least one of the strings in allowed_types is
     a substring of the ref object type name.
     Ex1:
-    ref = "KBaseGenomes.Genome-4.0"
+    ref = 11/22/33, which is a "KBaseGenomes.Genome-4.0"
     allowed_types = ["assembly", "KBaseFile.Assembly"]
     returns False
     Ex2:
-    ref = "KBaseGenomes.Genome-4.0"
+    ref = 44/55/66, which is a "KBaseGenomes.Genome-4.0"
     allowed_types = ["assembly", "genome"]
     returns True
     """
@@ -126,7 +130,8 @@ def get_object_names(ref_list, ws_url):
     info = ws.get_object_info3({"objects": obj_ids})
     name_map = dict()
     # might be in a data palette, so we can't just use the ref.
-    # we already have the refs as passed previously, so use those for mapping.
+    # we already have the refs as passed previously, so use those for mapping, as they're in
+    # the same order as what's returned.
     for i in range(len(info["infos"])):
         name_map[ref_list[i]] = info["infos"][i][1]
     return name_map
