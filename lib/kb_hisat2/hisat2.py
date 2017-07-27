@@ -77,7 +77,7 @@ class Hisat2(object):
         elif "condition" in params:
             reads["condition"] = params["condition"]
         reads["name"] = reads_ref["name"]
-        output_file = "aligned_reads"
+        output_file = "accepted_hits"
 
         # 3. Finally all set, do the alignment and upload the output.
         alignment_file = self.run_hisat2(
@@ -166,7 +166,7 @@ class Hisat2(object):
         )
         return (alignments, output_ref)
 
-    def run_hisat2(self, idx_prefix, reads, input_params, output_file="aligned_reads"):
+    def run_hisat2(self, idx_prefix, reads, input_params, output_file="accepted_hits"):
         """
         Runs HISAT2 on the data with the given parameters. Only operates on a single set of
         single-end or paired-end reads.
@@ -188,7 +188,7 @@ class Hisat2(object):
         input_params = original dictionary of inputs and parameters from the Narrative App. This
                        gets munged into HISAT2 flags.
         output_file = the file prefix (before ".sam") for the generated reads. Default =
-                      "aligned_reads". Used for doing multiple alignments over a set of
+                      "accepted_hits". Used for doing multiple alignments over a set of
                       reads (a ReadsSet or SampleSet).
         """
         # from the inputs, we need the sets of reads.
