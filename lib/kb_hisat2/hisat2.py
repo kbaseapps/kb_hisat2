@@ -367,9 +367,15 @@ class Hisat2(object):
             "input_ref": qc_ref
         }
         result = qm.run_bamqc(bamqc_params)
+        index_file = None
+        for f in os.listdir(result["qc_result_folder_path"]):
+            if f.endswith(".html"):
+                index_file = f
+        if index_file is None:
+            raise RuntimeError("QualiMap failed - no HTML file was found in the generated output.")
         html_zipped = package_directory(self.callback_url,
                                         result["qc_result_folder_path"],
-                                        'index.html',
+                                        index_file,
                                         'QualiMap Results')
         report_params = {
             "message": report_text,
