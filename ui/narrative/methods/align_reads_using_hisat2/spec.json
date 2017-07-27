@@ -26,22 +26,26 @@
         "default_values" : [ "" ],
         "field_type" : "text",
         "text_options" : {
-            "valid_ws_types" : ["KBaseGenomes.Genome" ]
+            "valid_ws_types" : [ "KBaseGenomes.Genome" ]
         }
     }, {
-        "id": "alignment_output",
-        "optional": false,
-        "advanced": false,
-        "allow_multiple": false,
-        "default_values": [""],
-        "field_type": "text",
-        "text_options": {
-            "is_output_name": true
-        }
+        "id" : "alignment_suffix",
+        "optional" : false,
+        "advanced" : true,
+        "allow_multiple" : false,
+        "default_values" : [ "_alignment" ],
+        "field_type" : "text"
+    }, {
+        "id" : "alignmentset_suffix",
+        "optional" : true,
+        "advanced" : true,
+        "allow_multiple" : false,
+        "default_values" : [ "_alignment_set" ],
+        "field_type" : "text"
     }, {
         "id": "reads_condition",
         "optional" : true,
-        "advanced": false,
+        "advanced": true,
         "allow_multiple": false,
         "default_values": [ "unspecified" ],
         "field_type": "text"
@@ -199,6 +203,12 @@
                     "target_property" : "genome_ref",
                     "target_type_transform": "resolved-ref"
                 }, {
+                    "input_parameter" : "alignment_suffix",
+                    "target_property" : "alignment_suffix"
+                },{
+                    "input_parameter" : "alignmentset_suffix",
+                    "target_property" : "alignmentset_suffix"
+                },{
                     "input_parameter" : "quality_score",
                     "target_property" : "quality_score"
                 }, {
@@ -232,16 +242,13 @@
                     "input_parameter" : "orientation",
                     "target_property" : "orientation"
                 }, {
-                    "input_parameter" : "alignment_output",
-                    "target_property" : "alignmentset_name"
-                }, {
                     "input_parameter" : "reads_condition",
                     "target_property" : "condition"
                 }
             ],
             "output_mapping" : [{
-                "service_method_output_path": [0,"alignment_ref"],
-                "target_property": "output"
+                "service_method_output_path": [0, "alignmentset_ref"],
+                "target_property": "alignmentset_ref"
             }, {
                 "narrative_system_variable": "workspace",
                 "target_property": "workspace"

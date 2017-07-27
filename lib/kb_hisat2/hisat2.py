@@ -32,7 +32,9 @@ from file_util import (
     fetch_reads_from_reference
 )
 from util import (
-    package_directory
+    package_directory,
+    is_set,
+    get_object_names
 )
 import uuid
 
@@ -81,24 +83,45 @@ class Hisat2(object):
         alignment_file = self.run_hisat2(
             idx_prefix, reads, params, output_file=output_file
         )
-        output_ref = self.upload_alignment(params, reads, alignment_file)
+        alignment_name = reads["name"] + params["alignment_suffix"]
+        output_ref = self.upload_alignment(params, reads, alignment_name, alignment_file)
+        alignment_set_ref = None
+        if is_set(params["sampleset_ref"], self.workspace_url):
+            # alignment_items, alignmentset_name, ws_name
+            set_name = get_object_names([params["sampleset_ref"]], self.workspace_url)[params["sampleset_ref"]]
+            alignment_set_name = set_name + params["alignmentset_suffix"]
+            alignment_set_ref = self.upload_alignment_set(
+                [{
+                    "ref": output_ref,
+                    "label": reads["condition"]
+                }],
+                alignment_set_name,
+                params["ws_name"]
+            )
         alignments = dict()
         alignments[reads_ref["ref"]] = {
             "ref": output_ref,
-            "name": params["alignmentset_name"]
+            "name": alignment_name
         }
         os.remove(reads["file_fwd"])
         if "file_rev" in reads:
             os.remove(reads["file_rev"])
-        return (alignments, output_ref)
+        return (alignments, output_ref, alignment_set_ref)
 
     def run_batch(self, reads_refs, params):
-        base_output_obj_name = params["alignmentset_name"]
+        """
+        Runs HISAT2 in batch mode.
+        reads_refs should be a list of dicts, where each looks like the following:
+        {
+            "ref": reads object reference,
+            "condition": condition for that ref (string)
+        }
+        """
         # build task list and send it to KBParallel
         tasks = list()
+        set_name = get_object_names([params["sampleset_ref"]], self.workspace_url)[params["sampleset_ref"]]
         for idx, reads_ref in enumerate(reads_refs):
             single_param = dict(params)  # need a copy of the params
-            single_param["alignmentset_name"] = "{}_{}".format(base_output_obj_name, idx)
             single_param["build_report"] = 0
             single_param["sampleset_ref"] = reads_ref["ref"]
             if "condition" in reads_ref:
@@ -112,6 +135,7 @@ class Hisat2(object):
                 "version": "dev",
                 "parameters": single_param
             })
+        # UNCOMMENT BELOW FOR LOCAL TESTING
         batch_run_params = {
             "tasks": tasks,
             "runner": "parallel",
@@ -129,19 +153,16 @@ class Hisat2(object):
                 raise RuntimeError("Failed a parallel run of HISAT2! {}".format(result["result_package"]["error"]))
             reads_ref = tasks[idx]["parameters"]["sampleset_ref"]
             alignment_items.append({
-                "ref": result["result_package"]["result"][0]["alignment_ref"],
+                "ref": result["result_package"]["result"][0]["alignment_objs"][reads_ref]["ref"],
                 "label": reads_refs[idx].get(
                     "condition",
                     params.get("condition",
-                               "unspecified condition"))
+                               "unspecified"))
             })
-            alignments[reads_ref] = {
-                "ref": result["result_package"]["result"][0]["alignment_ref"],
-                "name": tasks[idx]["parameters"]["alignmentset_name"]
-            }
+            alignments[reads_ref] = result["result_package"]["result"][0]["alignment_objs"][reads_ref]
         # build the final alignment set
         output_ref = self.upload_alignment_set(
-            alignment_items, base_output_obj_name, params["ws_name"]
+            alignment_items, set_name + params["alignmentset_suffix"], params["ws_name"]
         )
         return (alignments, output_ref)
 
@@ -247,10 +268,6 @@ class Hisat2(object):
             raise RuntimeError('Failed to execute HISAT2 alignment with the given parameters!')
         print("Done!")
         return alignment_file
-        print("Assembling output object and report...")
-        alignment_ref = self._upload_hisat2_alignment(input_params, reads, alignment_file)
-        print("Done!")
-        return alignment_ref
 
     # def upload_alignment_set(self, input_params, alignment_info, reads_info, alignmentset_name):
     def upload_alignment_set(self, alignment_items, alignmentset_name, ws_name):
@@ -291,7 +308,7 @@ class Hisat2(object):
         })
         return set_info["set_ref"]
 
-    def upload_alignment(self, input_params, reads_info, alignment_file):
+    def upload_alignment(self, input_params, reads_info, alignment_name, alignment_file):
         """
         Uploads the alignment file + metadata.
         This then returns the expected return dictionary from HISAT2.
@@ -301,7 +318,7 @@ class Hisat2(object):
             aligner_opts[k] = str(input_params[k])
 
         align_upload_params = {
-            "destination_ref": "{}/{}".format(input_params["ws_name"], input_params["alignmentset_name"]),
+            "destination_ref": "{}/{}".format(input_params["ws_name"], alignment_name),
             "file_path": alignment_file,
             "library_type": reads_info["style"],  # single or paired end,
             "condition": reads_info["condition"],

@@ -24,7 +24,12 @@ from util import (
     load_genbank_file,
     load_reads,
     load_reads_set,
-    load_sample_set
+    load_sample_set,
+)
+# kinda cheating, but I don't want to duplicate code for no good reason.
+from kb_hisat2.util import (
+    check_reference,
+    get_object_names
 )
 
 TEST_GBK_FILE = os.path.join("data", "at_chrom1_section.gbk")
@@ -114,7 +119,7 @@ class kb_hisat2Test(unittest.TestCase):
         )
 
         # Upload test SampleSet of single end reads
-        reads_refs = [
+        cls.reads_refs = [
             cls.single_end_ref_wt_1,
             cls.single_end_ref_wt_2
         ]
@@ -123,7 +128,7 @@ class kb_hisat2Test(unittest.TestCase):
             "wt"
         ]
         cls.single_end_sampleset = load_sample_set(
-            cls.wsURL, cls.ws_name, reads_refs, conditions, "SingleEnd", "se_sampleset"
+            cls.wsURL, cls.ws_name, cls.reads_refs, conditions, "SingleEnd", "se_sampleset"
         )
 
     @classmethod
@@ -193,7 +198,8 @@ class kb_hisat2Test(unittest.TestCase):
             "ws_name": self.ws_name,
             "sampleset_ref": self.single_end_reads_set,
             "genome_ref": self.genome_ref,
-            "alignmentset_name": "new_alignment_set",
+            "alignmentset_suffix": "_alignment_set",
+            "alignment_suffix": "_alignment",
             "num_threads": 2,
             "quality_score": "phred33",
             "skip": 0,
@@ -205,9 +211,21 @@ class kb_hisat2Test(unittest.TestCase):
             "no_spliced_alignment": 0,
             "transcriptome_mapping_only": 0,
             "build_report": 1
-        })
+        })[0]
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
+        self.assertIn("report_ref", res)
+        self.assertTrue(check_reference(res["report_ref"]))
+        self.assertIn("report_name", res)
+        self.assertIn("alignmentset_ref", res)
+        self.assertTrue(check_reference(res["alignmentset_ref"]))
+        self.assertTrue(get_object_names([res["alignmentset_ref"]], self.wsURL)[res["alignmentset_ref"]].endswith("_alignment_set"))
+        self.assertIn("alignment_objs", res)
+        self.assertTrue(len(res["alignment_objs"].keys()) == 2)
+        for reads_ref in res["alignment_objs"]:
+            self.assertIn(reads_ref, self.reads_refs)
+            self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
+            self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 
     def test_run_hisat2_single_end_lib_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
@@ -215,7 +233,8 @@ class kb_hisat2Test(unittest.TestCase):
             "sampleset_ref": self.single_end_ref_wt_1,
             "condition": "wt",
             "genome_ref": self.genome_ref,
-            "alignmentset_name": "new_alignment_set",
+            "alignmentset_suffix": "_alignment_set",
+            "alignment_suffix": "_alignment",
             "num_threads": 2,
             "quality_score": "phred33",
             "skip": 0,
@@ -227,16 +246,28 @@ class kb_hisat2Test(unittest.TestCase):
             "no_spliced_alignment": 0,
             "transcriptome_mapping_only": 0,
             "build_report": 1
-        })
+        })[0]
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
+        self.assertIn("report_ref", res)
+        self.assertTrue(check_reference(res["report_ref"]))
+        self.assertIn("report_name", res)
+        self.assertIn("alignmentset_ref", res)
+        self.assertIsNone(res["alignmentset_ref"])
+        self.assertIn("alignment_objs", res)
+        self.assertTrue(len(res["alignment_objs"].keys()) == 1)
+        for reads_ref in res["alignment_objs"]:
+            self.assertIn(reads_ref, self.reads_refs)
+            self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
+            self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
             "ws_name": self.ws_name,
             "sampleset_ref": self.single_end_sampleset,
             "genome_ref": self.genome_ref,
-            "alignmentset_name": "test_sampleset_alignments",
+            "alignmentset_suffix": "_sampleset_alignments",
+            "alignment_suffix": "_sampleset_alignment",
             "num_threads": 2,
             "quality_score": "phred33",
             "skip": 0,
@@ -248,9 +279,21 @@ class kb_hisat2Test(unittest.TestCase):
             "no_spliced_alignment": 0,
             "transcriptome_mapping_only": 0,
             "build_report": 1
-        })
+        })[0]
         self.assertIsNotNone(res)
         print("Done with HISAT2 run! {}".format(res))
+        self.assertIn("report_ref", res)
+        self.assertTrue(check_reference(res["report_ref"]))
+        self.assertIn("report_name", res)
+        self.assertIn("alignmentset_ref", res)
+        self.assertTrue(check_reference(res["alignmentset_ref"]))
+        self.assertTrue(get_object_names([res["alignmentset_ref"]], self.wsURL)[res["alignmentset_ref"]].endswith("_sampleset_alignments"))
+        self.assertIn("alignment_objs", res)
+        self.assertTrue(len(res["alignment_objs"].keys()) == 2)
+        for reads_ref in res["alignment_objs"]:
+            self.assertIn(reads_ref, self.reads_refs)
+            self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_sampleset_alignment"))
+            self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 
     def test_run_hisat2_paired_end_lib_ok(self):
         pass
@@ -269,3 +312,8 @@ class kb_hisat2Test(unittest.TestCase):
 
     def test_build_report_fail(self):
         pass
+
+    def test_status(self):
+        res = self.get_impl().status(self.get_context())
+        self.assertIsNotNone(res)
+        self.assertTrue(res[0]['state'] == 'OK')
