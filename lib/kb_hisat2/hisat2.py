@@ -2,23 +2,11 @@
 hisat2.py - the core of the HISAT module.
 -----------------------------------------
 This does all the heavy lifting of running HISAT2 to align reads against a reference sequence.
-It should be used as follows, mainly from kb_hisat2Impl.py.
-
-Case 1 - A single sample of reads - either a PairedEndLibrary or SingleEndLibrary.
-genome_idx = Hisat2.build_index(genome_ref)
-reads_files = util.fetch_reads_from_sampleset(sampleset_ref)
-alignments = Hisat2.run_hisat2(genome_idx, reads_files[0], input_params)
-
-Case 2 - A set of reads - either a ReadsSet or a SampleSet.
-(get genome idx and reads files as above, now reads_files is a list of samples.)
-for reads in reads_files:
-    alignments = Hisat2.run_hisat2(genome_idx, reads, input_params)
-
-TODO: use the kb_parallel system to parallelize this.
 """
 from __future__ import print_function
 import subprocess
 import os
+import re
 from pprint import pprint
 from pipes import quote  # deprecated, but useful here for filenames
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
@@ -42,10 +30,33 @@ HISAT_VERSION = "2.1.0"
 
 
 class Hisat2(object):
-    def __init__(self, callback_url, workspace_url, working_dir):
+    def __init__(self, callback_url, workspace_url, working_dir, provenance):
         self.callback_url = callback_url
         self.workspace_url = workspace_url
         self.working_dir = working_dir
+        self.provenance = provenance
+        self.my_version = 'release'
+        if len(provenance) > 0:
+            if 'subactions' in provenance[0]:
+                self.my_version = self.__get_version_from_subactions('kb_hisat2', provenance[0]['subactions'])
+        print('Running kb_hisat2 version = ' + self.my_version)
+
+    def __get_version_from_subactions(self, module_name, subactions):
+        # go through each sub action looking for
+        if not subactions:
+            return 'release'  # default to release if we can't find anything
+        for sa in subactions:
+            if 'name' in sa:
+                if sa['name'] == module_name:
+                    # local-docker-image implies that we are running in kb-test, so return 'dev'
+                    if sa['commit'] == 'local-docker-image':
+                        return 'dev'
+                    # to check that it is a valid hash, make sure it is the right
+                    # length and made up of valid hash characters
+                    if re.match('[a-fA-F0-9]{40}$', sa['commit']):
+                        return sa['commit']
+        # again, default to setting this to release
+        return 'release'
 
     def build_index(self, object_ref):
         """
@@ -132,7 +143,7 @@ class Hisat2(object):
             tasks.append({
                 "module_name": "kb_hisat2",
                 "function_name": "run_hisat2",
-                "version": "dev",
+                "version": self.my_version,
                 "parameters": single_param
             })
         # UNCOMMENT BELOW FOR LOCAL TESTING

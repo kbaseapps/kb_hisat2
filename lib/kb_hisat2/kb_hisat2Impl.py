@@ -132,7 +132,8 @@ class kb_hisat2:
             for err in param_err:
                 print(err)
             raise ValueError("Errors found in parameters, see logs for details.")
-        hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder)
+        hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder,
+                           ctx.provenance())
         # 1. Get list of reads object references
         reads_refs = fetch_reads_refs_from_sampleset(
             params["sampleset_ref"], self.workspace_url, self.callback_url
