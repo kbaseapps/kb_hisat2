@@ -15,6 +15,7 @@ try:
 except:
     # no they aren't
     from baseclient import BaseClient as _BaseClient  # @Reimport
+import time
 
 
 class kb_QualiMap(object):
@@ -22,8 +23,11 @@ class kb_QualiMap(object):
     def __init__(
             self, url=None, timeout=30 * 60, user_id=None,
             password=None, token=None, ignore_authrc=False,
-            trust_all_ssl_certificates=False, service_ver=None,
-            auth_svc='https://kbase.us/services/authorization/Sessions/Login'):
+            trust_all_ssl_certificates=False,
+            auth_svc='https://kbase.us/services/authorization/Sessions/Login',
+            service_ver='release',
+            async_job_check_time_ms=100, async_job_check_time_scale_percent=150, 
+            async_job_check_max_time_ms=300000):
         if url is None:
             raise ValueError('A url is required')
         self._service_ver = service_ver
@@ -31,7 +35,18 @@ class kb_QualiMap(object):
             url, timeout=timeout, user_id=user_id, password=password,
             token=token, ignore_authrc=ignore_authrc,
             trust_all_ssl_certificates=trust_all_ssl_certificates,
-            auth_svc=auth_svc)
+            auth_svc=auth_svc,
+            async_job_check_time_ms=async_job_check_time_ms,
+            async_job_check_time_scale_percent=async_job_check_time_scale_percent,
+            async_job_check_max_time_ms=async_job_check_max_time_ms)
+
+    def _check_job(self, job_id):
+        return self._client._check_job('kb_QualiMap', job_id)
+
+    def _run_bamqc_submit(self, params, context=None):
+        return self._client._submit_job(
+             'kb_QualiMap.run_bamqc', [params],
+             self._service_ver, context)
 
     def run_bamqc(self, params, context=None):
         """
@@ -51,10 +66,28 @@ class kb_QualiMap(object):
            String, parameter "index_html_file_name" of String, parameter
            "description" of String
         """
-        return self._client.call_method(
-            'kb_QualiMap.run_bamqc',
-            [params], self._service_ver, context)
+        job_id = self._run_bamqc_submit(params, context)
+        async_job_check_time = self._client.async_job_check_time
+        while True:
+            time.sleep(async_job_check_time)
+            async_job_check_time = (async_job_check_time *
+                self._client.async_job_check_time_scale_percent / 100.0)
+            if async_job_check_time > self._client.async_job_check_max_time:
+                async_job_check_time = self._client.async_job_check_max_time
+            job_state = self._check_job(job_id)
+            if job_state['finished']:
+                return job_state['result'][0]
 
     def status(self, context=None):
-        return self._client.call_method('kb_QualiMap.status',
-                                        [], self._service_ver, context)
+        job_id = self._client._submit_job('kb_QualiMap.status', 
+            [], self._service_ver, context)
+        async_job_check_time = self._client.async_job_check_time
+        while True:
+            time.sleep(async_job_check_time)
+            async_job_check_time = (async_job_check_time *
+                self._client.async_job_check_time_scale_percent / 100.0)
+            if async_job_check_time > self._client.async_job_check_max_time:
+                async_job_check_time = self._client.async_job_check_max_time
+            job_state = self._check_job(job_id)
+            if job_state['finished']:
+                return job_state['result'][0]
