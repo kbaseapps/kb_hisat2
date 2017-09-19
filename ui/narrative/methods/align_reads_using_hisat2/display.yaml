@@ -23,24 +23,27 @@ method-suggestions :
 parameters :
     sampleset_id :
         ui-name : |
-            RNA-seq Sample or Sample Set
+            RNA-seq Sample or SampleSet
         short-hint : |
-            Select the RNA-seq sample set or reads set. If you have only one sample of RNA-seq reads, select the corresponding library object.
+            Select the RNA-seq SampleSet. If you have only one sample of RNA-seq reads, select the corresponding library object.
     genome_id :
         ui-name : |
-            Genome
+            Assembly or Genome
         short-hint : |
-            Select the Genome to align the reads.
-    alignmentset_suffix :
-        ui-name : |
-            Alignment Set Suffix
-        short-hint : |
-            Provide a suffix that will appended to the name of the set of reads used as input.
+            Select the assembly or genome to align the reads.
+            
     alignment_suffix :
         ui-name : |
-            Alignment Suffix
+            Alignment Name Suffix
         short-hint : |
-            Provide a suffix that will be appended to the name of each reads library aligned.
+            Provide a suffix to append the individual Reads object to name each Alignment object
+    
+    alignmentset_suffix :
+        ui-name : |
+            AlignmentSet Name Suffix
+        short-hint : |
+            Provide a suffix to append the Set to name the AlignmentSet
+
     quality_score :
         ui-name : |
             Alignment Quality Score Type
@@ -114,7 +117,7 @@ parameters :
 description : |
     <p>This App aligns the sequencing reads for a set of two or more samples to long reference sequences of a genome using HISAT2 and outputs a set of alignments for the given sample set or reads set in BAM format. If the user has only a single sample of reads, this App will take single-end or paired-end library object instead of a sample set.</p>
 
-    <p>In addition, it outputs the alignment statistics such as total reads, mapped and unmapped reads, singletons, multiple alignments, and alignment rate in the table format.</p>
+    <p>In addition, it outputs the Qualimap generated BAM alignment QC report that includes global summary such as total number of mapped reads, mean samples coverage, mean samples GC-content, mean samples mapping quality, and sample statistics for each sample along with PCA and coverage statistics in histograms.</p>
 
     <p>HISAT2 is essentially a successor of TopHat2 and is relatively faster and more sensitive while still maintaining low memory requirements. The HISAT2 index is based on the FM Index of Ferragina and Manzini, which in turn is based on the Burrows-Wheeler transform. The algorithm used to build the index is based on the blockwise algorithm of Karkkainen.
 
