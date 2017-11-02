@@ -61,12 +61,12 @@ def load_reads(callback_url, ws_name, tech, file_fwd, file_rev, target_name):
     return reads_ref["obj_ref"]
 
 
-def load_reads_set(callback_url, ws_name, reads_set, target_name):
+def load_reads_set(srv_wiz_url, ws_name, reads_set, target_name):
     """
     Combine a list of reads references into a ReadsSet.
     if file_rev is None or not a present key, then this is treated as a single end reads.
     """
-    set_client = SetAPI(callback_url)
+    set_client = SetAPI(srv_wiz_url)
     set_output = set_client.save_reads_set_v1({
         "workspace": ws_name,
         "output_object_name": target_name,

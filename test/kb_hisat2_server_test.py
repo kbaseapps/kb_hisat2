@@ -72,6 +72,7 @@ class kb_hisat2Test(unittest.TestCase):
         cls.serviceImpl = kb_hisat2(cls.cfg)
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
+        cls.srv_wiz_url = cls.cfg['srv-wiz-url']
 
         # set up the test workspace
         cls.ws_name = "test_kb_hisat2_{}".format(int(time.time() * 1000))
@@ -115,7 +116,7 @@ class kb_hisat2Test(unittest.TestCase):
             "label": "wt"
         }]
         cls.single_end_reads_set = load_reads_set(
-            cls.callback_url, cls.ws_name, reads_set, "se_reads_set"
+            cls.srv_wiz_url, cls.ws_name, reads_set, "se_reads_set"
         )
 
         # Upload test SampleSet of single end reads

@@ -78,7 +78,7 @@ def fetch_fasta_from_object(ref, ws_url, callback_url):
         raise ValueError("Unable to fetch a FASTA file from an object of type {}".format(obj_type))
 
 
-def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
+def fetch_reads_refs_from_sampleset(ref, ws_url, srv_wiz_url):
     """
     From the given object ref, return a list of all reads objects that are a part of that
     object. E.g., if ref is a ReadsSet, return a list of all PairedEndLibrary or SingleEndLibrary
@@ -98,7 +98,7 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, callback_url):
     refs = list()
     if "KBaseSets.ReadsSet" in obj_type:
         print("Looking up reads references in ReadsSet object")
-        set_client = SetAPI(callback_url)
+        set_client = SetAPI(srv_wiz_url)
         reads_set = set_client.get_reads_set_v1({
             "ref": ref,
             "include_item_info": 0
