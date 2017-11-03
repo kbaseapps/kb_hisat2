@@ -96,38 +96,25 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, srv_wiz_url):
     """
     obj_type = get_object_type(ref, ws_url)
     refs = list()
-    if "KBaseSets.ReadsSet" in obj_type:
+    if "KBaseSets.ReadsSet" in obj_type or "KBaseRNASeq.RNASeqSampleSet" in obj_type:
         print("Looking up reads references in ReadsSet object")
-        set_client = SetAPI(srv_wiz_url)
+        set_client = SetAPI(srv_wiz_url, service_ver='dev')
         reads_set = set_client.get_reads_set_v1({
-            "ref": ref,
-            "include_item_info": 0
+                                            "ref": ref,
+                                            "include_item_info": 0,
+                                            "include_set_item_ref_paths": 1
         })
         print("Got results from ReadsSet object")
         pprint(reads_set)
-        ref_list = [r["ref"] for r in reads_set["data"]["items"]]
+        ref_list = [r["ref_path"] for r in reads_set["data"]["items"]]
         reads_names = get_object_names(ref_list, ws_url)
         for reads in reads_set["data"]["items"]:
-            ref = reads["ref"]
+            ref = reads["ref_path"]
             refs.append({
                 "ref": ref,
                 "condition": reads["label"],
                 "name": reads_names[ref]
             })
-
-    elif "KBaseRNASeq.RNASeqSampleSet" in obj_type:
-        print("Looking up reads references in RNASeqSampleSet object")
-        ws = Workspace(ws_url)
-        sample_set = ws.get_objects2({"objects": [{"ref": ref}]})["data"][0]["data"]
-        sample_names = get_object_names(sample_set["sample_ids"], ws_url)
-        for i in range(len(sample_set["sample_ids"])):
-            ref = sample_set["sample_ids"][i]
-            refs.append({
-                "ref": ref,
-                "condition": sample_set["condition"][i],
-                "name": sample_names[ref]
-            })
-
     elif ("KBaseAssembly.SingleEndLibrary" in obj_type or
           "KBaseFile.SingleEndLibrary" in obj_type or
           "KBaseAssembly.PairedEndLibrary" in obj_type or
