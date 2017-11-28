@@ -4,6 +4,9 @@
 name     : Align Reads using HISAT2 - v2.1.0
 tooltip  : |
     Align sequencing reads to long reference sequences using HISAT2
+
+icon: hisat2-cyan.png
+
 screenshots :
     []
 
