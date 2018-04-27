@@ -31,8 +31,8 @@ class kb_hisat2:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.1.10"
-    GIT_URL = "https://github.com/briehl/kb_hisat2"
+    VERSION = "1.0.0"
+    GIT_URL = "https://github.com/kbaseapps/kb_hisat2"
     GIT_COMMIT_HASH = "6ef455215a54740f680b3297303821abfefc6eab"
 
     #BEGIN_CLASS_HEADER

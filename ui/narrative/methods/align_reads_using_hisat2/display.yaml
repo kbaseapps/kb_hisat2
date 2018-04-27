@@ -4,6 +4,9 @@
 name     : Align Reads using HISAT2 - v2.1.0
 tooltip  : |
     Align sequencing reads to long reference sequences using HISAT2
+
+icon: hisat2-cyan.png
+
 screenshots :
     []
 
@@ -14,7 +17,7 @@ method-suggestions :
     related :
         []
     next :
-        [assemble_transcripts_using_cufflinks,assemble_transcripts_with_stringtie]
+        [kb_cufflinks/assemble_transcripts_using_cufflinks, kb_stringtie/run_stringtie]
 
 
 #
