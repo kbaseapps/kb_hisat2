@@ -98,7 +98,7 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, srv_wiz_url):
     refs = list()
     if "KBaseSets.ReadsSet" in obj_type or "KBaseRNASeq.RNASeqSampleSet" in obj_type:
         print("Looking up reads references in ReadsSet object")
-        set_client = SetAPI(srv_wiz_url, service_ver='dev')
+        set_client = SetAPI(srv_wiz_url)
         reads_set = set_client.get_reads_set_v1({
                                             "ref": ref,
                                             "include_item_info": 0,

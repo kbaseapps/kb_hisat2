@@ -36,7 +36,7 @@ def load_genbank_file(callback_url, ws_name, local_file, target_name):
         },
         "genome_name": target_name,
         "workspace_name": ws_name,
-        "source": "RefSeq",
+        "source": "Ensembl",
         "type": "User upload",
         "generate_ids_if_needed": 1
     })

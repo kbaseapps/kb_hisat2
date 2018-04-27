@@ -224,7 +224,8 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIn("alignment_objs", res)
         self.assertTrue(len(res["alignment_objs"].keys()) == 2)
         for reads_ref in res["alignment_objs"]:
-            #self.assertIn(reads_ref, self.reads_refs)
+            ref_from_refpath = reads_ref.split(';')[-1]
+            self.assertIn(ref_from_refpath, self.reads_refs)
             self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
             self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 
@@ -258,7 +259,8 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIn("alignment_objs", res)
         self.assertTrue(len(res["alignment_objs"].keys()) == 1)
         for reads_ref in res["alignment_objs"]:
-            self.assertIn(reads_ref, self.reads_refs)
+            ref_from_refpath = reads_ref.split(';')[-1]
+            self.assertIn(ref_from_refpath, self.reads_refs)
             self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
             self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 
@@ -292,7 +294,8 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIn("alignment_objs", res)
         self.assertTrue(len(res["alignment_objs"].keys()) == 2)
         for reads_ref in res["alignment_objs"]:
-            #self.assertIn(reads_ref, self.reads_refs)
+            ref_from_refpath = reads_ref.split(';')[-1]
+            self.assertIn(ref_from_refpath, self.reads_refs)
             self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_sampleset_alignment"))
             self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 

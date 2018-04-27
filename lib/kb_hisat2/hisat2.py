@@ -370,7 +370,7 @@ class Hisat2(object):
 
         report_text = "Created {} alignments from the given alignment set.".format(len(alignments))
 
-        qm = kb_QualiMap(self.callback_url, service_ver="dev")
+        qm = kb_QualiMap(self.callback_url)
         qc_ref = alignment_set
         if qc_ref is None:  # then there's only one alignment...
             qc_ref = alignments[alignments.keys()[0]]["ref"]
