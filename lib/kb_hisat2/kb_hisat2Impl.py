@@ -47,6 +47,7 @@ class kb_hisat2:
         # Any configuration parameters that are important should be parsed and
         # saved in the constructor.
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        self.srv_wiz_url = config['srv-wiz-url']
         self.workspace_url = config['workspace-url']
         self.shared_folder = config['scratch']
         self.num_threads = 2
@@ -132,11 +133,14 @@ class kb_hisat2:
             for err in param_err:
                 print(err)
             raise ValueError("Errors found in parameters, see logs for details.")
-        hs_runner = Hisat2(self.callback_url, self.workspace_url, self.shared_folder,
+        hs_runner = Hisat2(self.callback_url,
+                           self.srv_wiz_url,
+                           self.workspace_url,
+                           self.shared_folder,
                            ctx.provenance())
         # 1. Get list of reads object references
         reads_refs = fetch_reads_refs_from_sampleset(
-            params["sampleset_ref"], self.workspace_url, self.callback_url
+            params["sampleset_ref"], self.workspace_url, self.srv_wiz_url
         )
         # 2. Run hisat with index and reads.
         alignments = dict()

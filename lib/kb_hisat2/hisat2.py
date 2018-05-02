@@ -30,8 +30,9 @@ HISAT_VERSION = "2.1.0"
 
 
 class Hisat2(object):
-    def __init__(self, callback_url, workspace_url, working_dir, provenance):
+    def __init__(self, callback_url, srv_wiz_url, workspace_url, working_dir, provenance):
         self.callback_url = callback_url
+        self.srv_wiz_url = srv_wiz_url
         self.workspace_url = workspace_url
         self.working_dir = working_dir
         self.provenance = provenance
@@ -311,7 +312,7 @@ class Hisat2(object):
             "description": "Alignments using HISAT2, v.{}".format(HISAT_VERSION),
             "items": alignment_items
         }
-        set_api = SetAPI(self.callback_url)
+        set_api = SetAPI(self.srv_wiz_url)
         set_info = set_api.save_reads_alignment_set_v1({
             "workspace": ws_name,
             "output_object_name": alignmentset_name,
@@ -369,7 +370,7 @@ class Hisat2(object):
 
         report_text = "Created {} alignments from the given alignment set.".format(len(alignments))
 
-        qm = kb_QualiMap(self.callback_url, service_ver="dev")
+        qm = kb_QualiMap(self.callback_url, service_ver='dev')
         qc_ref = alignment_set
         if qc_ref is None:  # then there's only one alignment...
             qc_ref = alignments[alignments.keys()[0]]["ref"]
