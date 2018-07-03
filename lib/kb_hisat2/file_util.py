@@ -35,7 +35,7 @@ def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):
 
     # see which of those are of an appropriate type (ContigSet or Assembly), if any.
     assembly_ref = list()
-    ref_params = [{'ref': x} for x in genome_obj_refs]
+    ref_params = [{'ref': genome_ref + ";" + x} for x in genome_obj_refs]
     ref_info = ws.get_object_info3({'objects': ref_params})
     for idx, info in enumerate(ref_info.get('infos')):
         if "KBaseGenomeAnnotations.Assembly" in info[2] or "KBaseGenomes.ContigSet" in info[2]:
