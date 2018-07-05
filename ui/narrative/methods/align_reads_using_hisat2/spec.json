@@ -101,17 +101,6 @@
             "unchecked_value": 0
         }
     }, {
-        "id": "transcriptome_mapping_only",
-        "optional":true,
-        "advanced":true,
-        "allow_multiple":false,
-        "default_values":[""],
-        "field_type" : "checkbox",
-        "checkbox_options":{
-            "checked_value": 1,
-            "unchecked_value": 0
-        }
-    }, {
         "id" : "skip",
         "optional" : true,
         "advanced" : true,
@@ -232,9 +221,6 @@
                 }, {
                     "input_parameter" : "no_spliced_alignment",
                     "target_property" : "no_spliced_alignment"
-                }, {
-                    "input_parameter" : "transcriptome_mapping_only",
-                    "target_property" : "transcriptome_mapping_only"
                 }, {
                     "constant_value"  : "dta-cufflinks",
                     "target_property" : "tailor_alignments"

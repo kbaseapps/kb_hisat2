@@ -241,8 +241,6 @@ class Hisat2(object):
             exec_params.append("--" + input_params["orientation"])
         if input_params.get("no_spliced_alignment", False):
             exec_params.append("--no-spliced-alignment")
-        if input_params.get("transcriptome_mapping_only", False):
-            exec_params.append("--transcriptome-mapping-only")
         if input_params.get("tailor_alignments", None) is not None:
             exec_params.append("--" + str(input_params["tailor_alignments"]))
 

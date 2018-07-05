@@ -35,7 +35,6 @@ def check_hisat2_parameters(params, ws_url):
     # min_intron_length, int, >= 0, required
     # int max_intron_length - int, >= 0, required
     # bool no_spliced_alignment - 0 or 1, optional (default 0)
-    # bool transcriptome_mapping_only - 0 or 1, optional (default 0)
     # string tailor_alignments - string ...?
     print("Checking input parameters")
     pprint(params)
