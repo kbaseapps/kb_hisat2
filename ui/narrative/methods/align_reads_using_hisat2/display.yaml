@@ -94,11 +94,6 @@ parameters :
             Disable Splice Alignment
         short-hint : |
             HISAT2 will disable splice alignment.
-    transcriptome_mapping_only :
-        ui-name : |
-            Transcriptome Mapping Only
-        short-hint : |
-            HISAT2 will report only those alignments within known transcripts.
     orientation :
         ui-name : |
             Orientation

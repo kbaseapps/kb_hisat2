@@ -210,7 +210,6 @@ class kb_hisat2Test(unittest.TestCase):
             "min_intron_length": 20,
             "max_intron_length": 500000,
             "no_spliced_alignment": 0,
-            "transcriptome_mapping_only": 0,
             "build_report": 1
         })[0]
         self.assertIsNotNone(res)
@@ -246,7 +245,6 @@ class kb_hisat2Test(unittest.TestCase):
             "min_intron_length": 20,
             "max_intron_length": 500000,
             "no_spliced_alignment": 0,
-            "transcriptome_mapping_only": 0,
             "build_report": 1
         })[0]
         self.assertIsNotNone(res)
@@ -280,7 +278,6 @@ class kb_hisat2Test(unittest.TestCase):
             "min_intron_length": 20,
             "max_intron_length": 500000,
             "no_spliced_alignment": 0,
-            "transcriptome_mapping_only": 0,
             "build_report": 1
         })[0]
         self.assertIsNotNone(res)

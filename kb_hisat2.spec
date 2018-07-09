@@ -26,7 +26,6 @@ module kb_hisat2 {
     min_intron_length = sets minimum intron length (default 20)
     max_intron_length = sets maximum intron length (default 500,000)
     no_spliced_alignment = disable spliced alignment
-    transcriptome_mapping_only = only report alignments with known transcripts
     tailor_alignments = report alignments tailored for either cufflinks or stringtie
     condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
                 ignored for sets.
@@ -55,7 +54,6 @@ module kb_hisat2 {
         int min_intron_length;
         int max_intron_length;
         bool no_spliced_alignment;
-        bool transcriptome_mapping_only;
         string tailor_alignments;
         bool build_report;
     } Hisat2Params;

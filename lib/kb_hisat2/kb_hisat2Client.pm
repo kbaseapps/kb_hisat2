@@ -140,7 +140,6 @@ Hisat2Params is a reference to a hash where the following keys are defined:
 	min_intron_length has a value which is an int
 	max_intron_length has a value which is an int
 	no_spliced_alignment has a value which is a kb_hisat2.bool
-	transcriptome_mapping_only has a value which is a kb_hisat2.bool
 	tailor_alignments has a value which is a string
 	build_report has a value which is a kb_hisat2.bool
 bool is an int
@@ -180,7 +179,6 @@ Hisat2Params is a reference to a hash where the following keys are defined:
 	min_intron_length has a value which is an int
 	max_intron_length has a value which is an int
 	no_spliced_alignment has a value which is a kb_hisat2.bool
-	transcriptome_mapping_only has a value which is a kb_hisat2.bool
 	tailor_alignments has a value which is a string
 	build_report has a value which is a kb_hisat2.bool
 bool is an int
@@ -397,7 +395,6 @@ orientation = orientation of each member of paired-end reads. valid values = "fr
 min_intron_length = sets minimum intron length (default 20)
 max_intron_length = sets maximum intron length (default 500,000)
 no_spliced_alignment = disable spliced alignment
-transcriptome_mapping_only = only report alignments with known transcripts
 tailor_alignments = report alignments tailored for either cufflinks or stringtie
 condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
             ignored for sets.
@@ -432,7 +429,6 @@ orientation has a value which is a string
 min_intron_length has a value which is an int
 max_intron_length has a value which is an int
 no_spliced_alignment has a value which is a kb_hisat2.bool
-transcriptome_mapping_only has a value which is a kb_hisat2.bool
 tailor_alignments has a value which is a string
 build_report has a value which is a kb_hisat2.bool
 
@@ -461,7 +457,6 @@ orientation has a value which is a string
 min_intron_length has a value which is an int
 max_intron_length has a value which is an int
 no_spliced_alignment has a value which is a kb_hisat2.bool
-transcriptome_mapping_only has a value which is a kb_hisat2.bool
 tailor_alignments has a value which is a string
 build_report has a value which is a kb_hisat2.bool
 

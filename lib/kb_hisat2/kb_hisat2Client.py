@@ -57,9 +57,8 @@ class kb_hisat2(object):
            valid values = "fr, rf, ff" min_intron_length = sets minimum
            intron length (default 20) max_intron_length = sets maximum intron
            length (default 500,000) no_spliced_alignment = disable spliced
-           alignment transcriptome_mapping_only = only report alignments with
-           known transcripts tailor_alignments = report alignments tailored
-           for either cufflinks or stringtie condition = a string stating the
+           alignment tailor_alignments = report alignments tailored for
+           either cufflinks or stringtie condition = a string stating the
            experimental condition of the reads. REQUIRED for single reads,
            ignored for sets. build_report = 1 if we build a report, 0
            otherwise. (default 1) (shouldn't be user set - mainly used for
@@ -78,11 +77,9 @@ class kb_hisat2(object):
            "orientation" of String, parameter "min_intron_length" of Long,
            parameter "max_intron_length" of Long, parameter
            "no_spliced_alignment" of type "bool" (indicates true or false
-           values, false <= 0, true >=1), parameter
-           "transcriptome_mapping_only" of type "bool" (indicates true or
-           false values, false <= 0, true >=1), parameter "tailor_alignments"
-           of String, parameter "build_report" of type "bool" (indicates true
-           or false values, false <= 0, true >=1)
+           values, false <= 0, true >=1), parameter "tailor_alignments" of
+           String, parameter "build_report" of type "bool" (indicates true or
+           false values, false <= 0, true >=1)
         :returns: instance of type "Hisat2Output" (Output for hisat2.
            alignmentset_ref if an alignment set is created alignment_objs for
            each individual alignment created. The keys are the references to

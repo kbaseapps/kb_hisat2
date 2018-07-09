@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * min_intron_length = sets minimum intron length (default 20)
  * max_intron_length = sets maximum intron length (default 500,000)
  * no_spliced_alignment = disable spliced alignment
- * transcriptome_mapping_only = only report alignments with known transcripts
  * tailor_alignments = report alignments tailored for either cufflinks or stringtie
  * condition = a string stating the experimental condition of the reads. REQUIRED for single reads,
  *             ignored for sets.
@@ -66,7 +65,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "min_intron_length",
     "max_intron_length",
     "no_spliced_alignment",
-    "transcriptome_mapping_only",
     "tailor_alignments",
     "build_report"
 })
@@ -108,8 +106,6 @@ public class Hisat2Params {
     private Long maxIntronLength;
     @JsonProperty("no_spliced_alignment")
     private Long noSplicedAlignment;
-    @JsonProperty("transcriptome_mapping_only")
-    private Long transcriptomeMappingOnly;
     @JsonProperty("tailor_alignments")
     private String tailorAlignments;
     @JsonProperty("build_report")
@@ -386,21 +382,6 @@ public class Hisat2Params {
         return this;
     }
 
-    @JsonProperty("transcriptome_mapping_only")
-    public Long getTranscriptomeMappingOnly() {
-        return transcriptomeMappingOnly;
-    }
-
-    @JsonProperty("transcriptome_mapping_only")
-    public void setTranscriptomeMappingOnly(Long transcriptomeMappingOnly) {
-        this.transcriptomeMappingOnly = transcriptomeMappingOnly;
-    }
-
-    public Hisat2Params withTranscriptomeMappingOnly(Long transcriptomeMappingOnly) {
-        this.transcriptomeMappingOnly = transcriptomeMappingOnly;
-        return this;
-    }
-
     @JsonProperty("tailor_alignments")
     public String getTailorAlignments() {
         return tailorAlignments;
@@ -443,7 +424,7 @@ public class Hisat2Params {
 
     @Override
     public String toString() {
-        return ((((((((((((((((((((((((((((((((((((((((((((("Hisat2Params"+" [wsName=")+ wsName)+", alignmentSuffix=")+ alignmentSuffix)+", alignmentsetSuffix=")+ alignmentsetSuffix)+", samplesetRef=")+ samplesetRef)+", condition=")+ condition)+", genomeRef=")+ genomeRef)+", numThreads=")+ numThreads)+", qualityScore=")+ qualityScore)+", skip=")+ skip)+", trim3=")+ trim3)+", trim5=")+ trim5)+", np=")+ np)+", minins=")+ minins)+", maxins=")+ maxins)+", orientation=")+ orientation)+", minIntronLength=")+ minIntronLength)+", maxIntronLength=")+ maxIntronLength)+", noSplicedAlignment=")+ noSplicedAlignment)+", transcriptomeMappingOnly=")+ transcriptomeMappingOnly)+", tailorAlignments=")+ tailorAlignments)+", buildReport=")+ buildReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((((((((((((((((((((((((((((("Hisat2Params"+" [wsName=")+ wsName)+", alignmentSuffix=")+ alignmentSuffix)+", alignmentsetSuffix=")+ alignmentsetSuffix)+", samplesetRef=")+ samplesetRef)+", condition=")+ condition)+", genomeRef=")+ genomeRef)+", numThreads=")+ numThreads)+", qualityScore=")+ qualityScore)+", skip=")+ skip)+", trim3=")+ trim3)+", trim5=")+ trim5)+", np=")+ np)+", minins=")+ minins)+", maxins=")+ maxins)+", orientation=")+ orientation)+", minIntronLength=")+ minIntronLength)+", maxIntronLength=")+ maxIntronLength)+", noSplicedAlignment=")+ noSplicedAlignment)+", tailorAlignments=")+ tailorAlignments)+", buildReport=")+ buildReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }
