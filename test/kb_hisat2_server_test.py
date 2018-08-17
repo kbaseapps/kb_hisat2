@@ -20,6 +20,7 @@ from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from Workspace.WorkspaceClient import Workspace
+from DataFileUtil.DataFileUtilClient import DataFileUtil
 from util import (
     load_genbank_file,
     load_reads,
@@ -77,6 +78,8 @@ class kb_hisat2Test(unittest.TestCase):
         # set up the test workspace
         cls.ws_name = "test_kb_hisat2_{}".format(int(time.time() * 1000))
         cls.ws_client.create_workspace({"workspace": cls.ws_name})
+
+        cls.dfu = DataFileUtil(cls.callback_url)
 
         # Upload test genome
         gbk_file = os.path.join(cls.scratch, os.path.basename(TEST_GBK_FILE))
@@ -260,7 +263,16 @@ class kb_hisat2Test(unittest.TestCase):
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)
             self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
-            self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
+            alignment_ref = res["alignment_objs"][reads_ref]["ref"]
+            self.assertTrue(check_reference(alignment_ref))
+            alignment_data = self.dfu.get_objects(
+                                {"object_refs": [alignment_ref]})['data'][0]['data']
+            align_stats = alignment_data.get('alignment_stats')
+            self.assertEqual(align_stats.get('total_reads'), 15254)
+            self.assertEqual(align_stats.get('mapped_reads'), 15081)
+            self.assertEqual(align_stats.get('unmapped_reads'), 173)
+            self.assertEqual(align_stats.get('singletons'), 11044)
+            self.assertEqual(align_stats.get('multiple_alignments'), 4037)
 
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
