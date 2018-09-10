@@ -31,9 +31,9 @@ parameters :
             Select the RNA-seq sample set or reads set. If you have only one sample of RNA-seq reads, select the corresponding library object.
     genome_id :
         ui-name : |
-            Genome
+            Assembly or Genome
         short-hint : |
-            Select the Genome to align the reads.
+            Select the Assembly or Genome to align the reads.
     alignmentset_suffix :
         ui-name : |
             Alignment Set Suffix
@@ -110,7 +110,7 @@ parameters :
             Set the condition associated with the input reads object. This is required for a single sample, but ignored for sets of samples, since that is included in the set.
 
 description : |
-    <p>This App aligns the sequencing reads for a set of two or more samples to long reference sequences of a genome using HISAT2 and outputs a set of alignments for the given sample set or reads set in BAM format. If the user has only a single sample of reads, this App will take single-end or paired-end library object instead of a sample set.</p>
+    <p>This App aligns the sequencing reads for a set of two or more samples to long reference sequences of a assembly or genome using HISAT2 and outputs a set of alignments for the given sample set or reads set in BAM format. If the user has only a single sample of reads, this App will take single-end or paired-end library object instead of a sample set.</p>
 
     <p>In addition, it outputs the alignment statistics such as total reads, mapped and unmapped reads, singletons, multiple alignments, and alignment rate in the table format.</p>
 

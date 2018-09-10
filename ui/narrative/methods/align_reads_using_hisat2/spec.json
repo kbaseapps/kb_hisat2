@@ -19,14 +19,14 @@
             "valid_ws_types" : ["KBaseSets.ReadsSet", "KBaseRNASeq.RNASeqSampleSet" , "KBaseAssembly.SingleEndLibrary", "KBaseAssembly.PairedEndLibrary", "KBaseFile.SingleEndLibrary", "KBaseFile.PairedEndLibrary"]
         }
     }, {
-        "id" : "genome_id",
+        "id" : "assembly_or_genome_id",
         "optional" : false,
         "advanced" : false,
         "allow_multiple" : false,
         "default_values" : [ "" ],
         "field_type" : "text",
         "text_options" : {
-            "valid_ws_types" : [ "KBaseGenomes.Genome" ]
+            "valid_ws_types" : [ "KBaseGenomes.Genome", "KBaseGenomeAnnotations.Assembly", "KBaseGenomes.ContigSet"]
         }
     }, {
         "id" : "alignment_suffix",
@@ -188,7 +188,7 @@
                     "target_property" : "sampleset_ref",
                     "target_type_transform": "resolved-ref"
                 }, {
-                    "input_parameter" : "genome_id",
+                    "input_parameter" : "assembly_or_genome_id",
                     "target_property" : "genome_ref",
                     "target_type_transform": "resolved-ref"
                 }, {

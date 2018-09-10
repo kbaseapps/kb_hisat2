@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import unittest
-import os  # noqa: F401
-import json  # noqa: F401
-import time
-import shutil
 
+import os  # noqa: F401
+import shutil
+import time
+import unittest
 from os import environ
+
 try:
     from ConfigParser import ConfigParser  # py2
 except:
     from configparser import ConfigParser  # py3
 
-from pprint import pprint  # noqa: F401
-
-from biokbase.workspace.client import Workspace as workspaceService
 from kb_hisat2.kb_hisat2Impl import kb_hisat2
 from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
@@ -69,7 +66,7 @@ class kb_hisat2Test(unittest.TestCase):
                         }],
                         'authenticated': 1})
         cls.wsURL = cls.cfg['workspace-url']
-        cls.ws_client = workspaceService(cls.wsURL)
+        cls.ws_client = Workspace(cls.wsURL)
         cls.serviceImpl = kb_hisat2(cls.cfg)
         cls.scratch = cls.cfg['scratch']
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
@@ -134,6 +131,24 @@ class kb_hisat2Test(unittest.TestCase):
         cls.single_end_sampleset = load_sample_set(
             cls.wsURL, cls.ws_name, cls.reads_refs, conditions, "SingleEnd", "se_sampleset"
         )
+        genome_obj_info = cls.ws_client.get_objects2({
+            'objects': [{'ref': cls.genome_ref}],
+            'no_data': 1
+        })
+        # get the list of genome refs from the returned info.
+        # if there are no refs (or something funky with the return), this will be an empty list.
+        # this WILL fail if data is an empty list. But it shouldn't be, and we know because
+        # we have a real genome reference, or get_objects2 would fail.
+        genome_obj_refs = genome_obj_info.get('data', [{}])[0].get('refs', [])
+
+        # see which of those are of an appropriate type (ContigSet or Assembly), if any.
+        assembly_ref = list()
+        ref_params = [{'ref': x} for x in genome_obj_refs]
+        ref_info = cls.ws_client.get_object_info3({'objects': ref_params})
+        for idx, info in enumerate(ref_info.get('infos')):
+            if "KBaseGenomeAnnotations.Assembly" in info[2] or "KBaseGenomes.ContigSet" in info[2]:
+                assembly_ref.append(";".join(ref_info.get('paths')[idx]))
+        cls.assembly_ref = assembly_ref[0]
 
     @classmethod
     def tearDownClass(cls):
@@ -175,26 +190,7 @@ class kb_hisat2Test(unittest.TestCase):
 
     def test_build_hisat2_index_from_assembly_ok(self):
         manager = Hisat2IndexManager(self.wsURL, self.callback_url, self.scratch)
-        ws = Workspace(self.wsURL)
-        genome_obj_info = ws.get_objects2({
-            'objects': [{'ref': self.genome_ref}],
-            'no_data': 1
-        })
-        # get the list of genome refs from the returned info.
-        # if there are no refs (or something funky with the return), this will be an empty list.
-        # this WILL fail if data is an empty list. But it shouldn't be, and we know because
-        # we have a real genome reference, or get_objects2 would fail.
-        genome_obj_refs = genome_obj_info.get('data', [{}])[0].get('refs', [])
-
-        # see which of those are of an appropriate type (ContigSet or Assembly), if any.
-        assembly_ref = list()
-        ref_params = [{'ref': x} for x in genome_obj_refs]
-        ref_info = ws.get_object_info3({'objects': ref_params})
-        for idx, info in enumerate(ref_info.get('infos')):
-            if "KBaseGenomeAnnotations.Assembly" in info[2] or "KBaseGenomes.ContigSet" in info[2]:
-                assembly_ref.append(";".join(ref_info.get('paths')[idx]))
-        assembly_ref = assembly_ref[0]
-        idx_prefix = manager.get_hisat2_index(assembly_ref)
+        idx_prefix = manager.get_hisat2_index(self.assembly_ref)
         self.assertIn("kb_hisat2_idx", idx_prefix)
 
     def test_run_hisat2_readsset_ok(self):
@@ -273,6 +269,41 @@ class kb_hisat2Test(unittest.TestCase):
             self.assertEqual(align_stats.get('unmapped_reads'), 173)
             self.assertEqual(align_stats.get('singletons'), 11044)
             self.assertEqual(align_stats.get('multiple_alignments'), 4037)
+
+    def test_run_hisat2_assembly_ok(self):
+        res = self.get_impl().run_hisat2(self.get_context(), {
+            "ws_name": self.ws_name,
+            "sampleset_ref": self.single_end_ref_wt_1,
+            "condition": "wt",
+            "genome_ref": self.assembly_ref,
+            "alignmentset_suffix": "_alignment_set",
+            "alignment_suffix": "_alignment",
+            "num_threads": 2,
+            "quality_score": "phred33",
+            "skip": 0,
+            "trim3": 0,
+            "trim5": 0,
+            "np": 1,
+            "min_intron_length": 20,
+            "max_intron_length": 500000,
+            "no_spliced_alignment": 0,
+            "transcriptome_mapping_only": 0,
+            "build_report": 1
+        })[0]
+        self.assertIsNotNone(res)
+        print("Done with HISAT2 run! {}".format(res))
+        self.assertIn("report_ref", res)
+        self.assertTrue(check_reference(res["report_ref"]))
+        self.assertIn("report_name", res)
+        self.assertIn("alignmentset_ref", res)
+        self.assertIsNone(res["alignmentset_ref"])
+        self.assertIn("alignment_objs", res)
+        self.assertTrue(len(res["alignment_objs"].keys()) == 1)
+        for reads_ref in res["alignment_objs"]:
+            ref_from_refpath = reads_ref.split(';')[-1]
+            self.assertIn(ref_from_refpath, self.reads_refs)
+            self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
+            self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
 
     def test_run_hisat2_sampleset_ok(self):
         res = self.get_impl().run_hisat2(self.get_context(), {
