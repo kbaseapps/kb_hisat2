@@ -29,11 +29,11 @@ parameters :
             RNA-seq Sample or Sample Set
         short-hint : |
             Select the RNA-seq sample set or reads set. If you have only one sample of RNA-seq reads, select the corresponding library object.
-    genome_id :
+    assembly_or_genome_id :
         ui-name : |
-            Genome
+            Assembly or Genome
         short-hint : |
-            Select the Genome to align the reads.
+            Select the Assembly or Genome to align the reads.
     alignmentset_suffix :
         ui-name : |
             Alignment Set Suffix
@@ -110,9 +110,9 @@ parameters :
             Set the condition associated with the input reads object. This is required for a single sample, but ignored for sets of samples, since that is included in the set.
 
 description : |
-    <p>This App aligns the sequencing reads for a set of two or more samples to long reference sequences of a genome using HISAT2 and outputs a set of alignments for the given sample set or reads set in BAM format. If the user has only a single sample of reads, this App will take single-end or paired-end library object instead of a sample set.</p>
+    <p>This App aligns the sequencing reads for a set of two or more samples to long reference sequences of a assembly or genome using HISAT2 and outputs a set of alignments for the given sample set or reads set in BAM format. If the user has only a single sample of reads, this App will take single-end or paired-end library object instead of a sample set.</p>
 
-    <p>In addition, it outputs the alignment statistics such as total reads, mapped and unmapped reads, singletons, multiple alignments, and alignment rate in the table format.</p>
+    <p>In addition, it outputs the Qualimap-generated BAM alignment QC report with a global summary. This summary includes the total number of mapped reads, mean samples coverage, mean samples GC-content, mean samples mapping quality, and sample statistics for each sample, along with PCA and coverage histograms.</p>
 
     <p>HISAT2 is essentially a successor of TopHat2 and is relatively faster and more sensitive while still maintaining low memory requirements. The HISAT2 index is based on the FM Index of Ferragina and Manzini, which in turn is based on the Burrows-Wheeler transform. The algorithm used to build the index is based on the blockwise algorithm of Karkkainen.
 
