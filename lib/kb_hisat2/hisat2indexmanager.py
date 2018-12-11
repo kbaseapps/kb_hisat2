@@ -10,12 +10,12 @@ HISAT2 index files from either a genome or assembly (or contigset) object. If ge
 are also stored somewhere and associated with the genome ref.
 """
 from __future__ import print_function
+
+import os
 import subprocess
 import uuid
-import os
-from kb_hisat2.file_util import (
-    fetch_fasta_from_object
-)
+
+from kb_hisat2.file_util import fetch_fasta_from_object
 
 
 class Hisat2IndexManager(object):

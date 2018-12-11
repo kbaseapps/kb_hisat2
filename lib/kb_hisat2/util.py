@@ -4,10 +4,12 @@ These mainly deal with manipulating files from Workspace objects.
 There's also some parameter checking and munging functions.
 """
 from __future__ import print_function
+
 import re
 from pprint import pprint
-from Workspace.WorkspaceClient import Workspace
-from DataFileUtil.DataFileUtilClient import DataFileUtil
+
+from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.WorkspaceClient import Workspace
 
 
 def check_hisat2_parameters(params, ws_url):

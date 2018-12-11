@@ -16,8 +16,8 @@ from kb_hisat2.kb_hisat2Impl import kb_hisat2
 from kb_hisat2.kb_hisat2Server import MethodContext
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
-from Workspace.WorkspaceClient import Workspace
-from DataFileUtil.DataFileUtilClient import DataFileUtil
+from installed_clients.WorkspaceClient import Workspace
+from installed_clients.DataFileUtilClient import DataFileUtil
 from util import (
     load_genbank_file,
     load_reads,
@@ -25,10 +25,8 @@ from util import (
     load_sample_set,
 )
 # kinda cheating, but I don't want to duplicate code for no good reason.
-from kb_hisat2.util import (
-    check_reference,
-    get_object_names
-)
+from kb_hisat2.util import check_reference, get_object_names
+
 
 TEST_GBK_FILE = os.path.join("data", "at_chrom1_section.gbk")
 TEST_READS_WT_1_FILE = os.path.join("data", "extracted_WT_rep1.fastq")

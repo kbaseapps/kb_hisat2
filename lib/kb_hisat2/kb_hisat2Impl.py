@@ -2,17 +2,12 @@
 #BEGIN_HEADER
 # The header block is where all import statments should live
 from __future__ import print_function
+
 import os
-from util import (
-    check_hisat2_parameters,
-)
-from file_util import (
-    fetch_reads_from_reference,
-    fetch_reads_refs_from_sampleset
-)
+
+from kb_hisat2.file_util import fetch_reads_refs_from_sampleset
 from kb_hisat2.hisat2 import Hisat2
-from KBParallel.KBParallelClient import KBParallel
-from pprint import pprint
+from kb_hisat2.util import check_hisat2_parameters
 #END_HEADER
 
 
