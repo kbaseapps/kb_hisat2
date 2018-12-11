@@ -1,11 +1,11 @@
 """
 Some test utility functions for uploading test data.
 """
-from GenomeFileUtil.GenomeFileUtilClient import GenomeFileUtil
-from ReadsUtils.ReadsUtilsClient import ReadsUtils
-from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
-from SetAPI.SetAPIClient import SetAPI
-from Workspace.WorkspaceClient import Workspace
+from installed_clients.AssemblyUtilClient import AssemblyUtil
+from installed_clients.GenomeFileUtilClient import GenomeFileUtil
+from installed_clients.ReadsUtilsClient import ReadsUtils
+from installed_clients.SetAPIServiceClient import SetAPI
+from installed_clients.WorkspaceClient import Workspace
 
 
 def load_fasta_file(callback_url, ws_name, filename, obj_name, contents):
