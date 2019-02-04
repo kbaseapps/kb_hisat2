@@ -3,7 +3,7 @@ hisat2.py - the core of the HISAT module.
 -----------------------------------------
 This does all the heavy lifting of running HISAT2 to align reads against a reference sequence.
 """
-from __future__ import print_function
+
 
 import os
 import re
@@ -34,7 +34,8 @@ class Hisat2(object):
         self.my_version = 'release'
         if len(provenance) > 0:
             if 'subactions' in provenance[0]:
-                self.my_version = self.__get_version_from_subactions('kb_hisat2', provenance[0]['subactions'])
+                self.my_version = self.__get_version_from_subactions('kb_hisat2',
+                                                                     provenance[0]['subactions'])
         print('Running kb_hisat2 version = ' + self.my_version)
 
     def __get_version_from_subactions(self, module_name, subactions):
@@ -95,7 +96,8 @@ class Hisat2(object):
         alignment_set_ref = None
         if is_set(params["sampleset_ref"], self.workspace_url):
             # alignment_items, alignmentset_name, ws_name
-            set_name = get_object_names([params["sampleset_ref"]], self.workspace_url)[params["sampleset_ref"]]
+            set_name = get_object_names([params["sampleset_ref"]],
+                                        self.workspace_url)[params["sampleset_ref"]]
             alignment_set_name = set_name + params["alignmentset_suffix"]
             alignment_set_ref = self.upload_alignment_set(
                 [{
@@ -113,7 +115,7 @@ class Hisat2(object):
         os.remove(reads["file_fwd"])
         if "file_rev" in reads:
             os.remove(reads["file_rev"])
-        return (alignments, output_ref, alignment_set_ref)
+        return alignments, output_ref, alignment_set_ref
 
     def run_batch(self, reads_refs, params):
         """
@@ -126,7 +128,8 @@ class Hisat2(object):
         """
         # build task list and send it to KBParallel
         tasks = list()
-        set_name = get_object_names([params["sampleset_ref"]], self.workspace_url)[params["sampleset_ref"]]
+        set_name = get_object_names([params["sampleset_ref"]],
+                                    self.workspace_url)[params["sampleset_ref"]]
         for idx, reads_ref in enumerate(reads_refs):
             single_param = dict(params)  # need a copy of the params
             single_param["build_report"] = 0
@@ -157,7 +160,8 @@ class Hisat2(object):
         for idx, result in enumerate(results):
             # idx of the result is the same as the idx of the inputs AND reads_refs
             if result["is_error"] != 0:
-                raise RuntimeError("Failed a parallel run of HISAT2! {}".format(result["result_package"]["error"]))
+                raise RuntimeError(
+                    f"Failed a parallel run of HISAT2! {result['result_package']['error']}")
             reads_ref = tasks[idx]["parameters"]["sampleset_ref"]
             alignment_items.append({
                 "ref": result["result_package"]["result"][0]["alignment_objs"][reads_ref]["ref"],
@@ -302,7 +306,7 @@ class Hisat2(object):
         """
         print("Uploading completed alignment set")
         alignment_set = {
-            "description": "Alignments using HISAT2, v.{}".format(HISAT_VERSION),
+            "description": f"Alignments using HISAT2, v.{HISAT_VERSION}",
             "items": alignment_items
         }
         set_api = SetAPI(self.srv_wiz_url)
@@ -340,7 +344,7 @@ class Hisat2(object):
 
         ra_util = ReadsAlignmentUtils(self.callback_url, service_ver="dev")
         alignment_ref = ra_util.upload_alignment(align_upload_params)["obj_ref"]
-        print("Done! New alignment uploaded as object {}".format(alignment_ref))
+        print(f"Done! New alignment uploaded as object {alignment_ref}")
         return alignment_ref
 
     def build_report(self, params, reads_refs, alignments, alignment_set=None):
@@ -353,7 +357,7 @@ class Hisat2(object):
         for k in alignments:
             created_objects.append({
                 "ref": alignments[k]["ref"],
-                "description": "Reads {} aligned to Genome {}".format(k, params["genome_ref"])
+                "description": f"Reads {k} aligned to Genome {params['genome_ref']}"
             })
         if alignment_set is not None:
             created_objects.append({
@@ -361,12 +365,12 @@ class Hisat2(object):
                 "description": "Set of all new alignments"
             })
 
-        report_text = "Created {} alignments from the given alignment set.".format(len(alignments))
+        report_text = f"Created {len(alignments)} alignments from the given alignment set."
 
         qm = kb_QualiMap(self.callback_url, service_ver='dev')
         qc_ref = alignment_set
         if qc_ref is None:  # then there's only one alignment...
-            qc_ref = alignments[alignments.keys()[0]]["ref"]
+            qc_ref = alignments[list(alignments.keys())[0]]["ref"]
         bamqc_params = {
             "create_report": 0,
             "input_ref": qc_ref
@@ -428,7 +432,7 @@ class Hisat2(object):
             ])
         else:
             raise ValueError("HISAT2 run style must be 'paired', 'single', or 'interleaved'. "
-                             "'{}' is not allowed".format(style))
+                             f"'{style}' is not allowed")
 
         cmd.extend(exec_params)
         cmd.extend([

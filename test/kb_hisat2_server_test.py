@@ -1,32 +1,23 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-
 import os  # noqa: F401
 import shutil
 import time
 import unittest
+from configparser import ConfigParser  # py3
 from os import environ
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except:
-    from configparser import ConfigParser  # py3
-
-from kb_hisat2.kb_hisat2Impl import kb_hisat2
-from kb_hisat2.kb_hisat2Server import MethodContext
+from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.WorkspaceClient import Workspace
 from kb_hisat2.authclient import KBaseAuth as _KBaseAuth
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
-from installed_clients.WorkspaceClient import Workspace
-from installed_clients.DataFileUtilClient import DataFileUtil
+from kb_hisat2.kb_hisat2Impl import kb_hisat2
+from kb_hisat2.kb_hisat2Server import MethodContext
+from kb_hisat2.util import check_reference, get_object_names
 from util import (
     load_genbank_file,
     load_reads,
     load_reads_set,
     load_sample_set,
 )
-# kinda cheating, but I don't want to duplicate code for no good reason.
-from kb_hisat2.util import check_reference, get_object_names
-
 
 TEST_GBK_FILE = os.path.join("data", "at_chrom1_section.gbk")
 TEST_READS_WT_1_FILE = os.path.join("data", "extracted_WT_rep1.fastq")
@@ -218,7 +209,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertTrue(check_reference(res["alignmentset_ref"]))
         self.assertTrue(get_object_names([res["alignmentset_ref"]], self.wsURL)[res["alignmentset_ref"]].endswith("_alignment_set"))
         self.assertIn("alignment_objs", res)
-        self.assertTrue(len(res["alignment_objs"].keys()) == 2)
+        self.assertTrue(len(list(res["alignment_objs"].keys())) == 2)
         for reads_ref in res["alignment_objs"]:
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)

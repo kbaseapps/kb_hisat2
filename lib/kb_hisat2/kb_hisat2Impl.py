@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
 # The header block is where all import statments should live
-from __future__ import print_function
+
 
 import os
 
@@ -26,9 +26,9 @@ class kb_hisat2:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.1.0"
-    GIT_URL = "git@github.com:sean-mccorkle/kb_hisat2.git"
-    GIT_COMMIT_HASH = "015141aad71ae423271496081d7a5c77d362774d"
+    VERSION = "1.2.0"
+    GIT_URL = "https://github.com/kbaseapps/kb_hisat2.git"
+    GIT_COMMIT_HASH = "0ccc08dda21c4730dc8728530d088be1a13d1b04"
 
     #BEGIN_CLASS_HEADER
     # Class variables and functions can be defined in this block

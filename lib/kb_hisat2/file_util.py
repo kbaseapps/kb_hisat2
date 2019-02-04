@@ -139,7 +139,7 @@ def fetch_reads_from_reference(ref, callback_url):
     }
     """
     try:
-        print("Fetching reads from object {}".format(ref))
+        print(("Fetching reads from object {}".format(ref)))
         reads_client = ReadsUtils(callback_url)
         reads_dl = reads_client.download_reads({
             "read_libraries": [ref],
@@ -156,5 +156,5 @@ def fetch_reads_from_reference(ref, callback_url):
             ret_reads["file_rev"] = reads_files["rev"]
         return ret_reads
     except:
-        print("Unable to fetch a file from expected reads object {}".format(ref))
+        print(f"Unable to fetch a file from expected reads object {ref}")
         raise

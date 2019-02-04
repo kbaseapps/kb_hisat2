@@ -1,4 +1,4 @@
-FROM kbase/kbase:sdkbase2.latest
+FROM kbase/sdkbase2:python
 MAINTAINER KBase Developer
 # -----------------------------------------
 # In this section, you can install any system dependencies required
@@ -6,17 +6,19 @@ MAINTAINER KBase Developer
 # install line here, a git checkout to download code, or run any other
 # installation scripts.
 
-# RUN apt-get update
-
-# Here we install a python coverage tool and an
-# https library that is out of date in the base image.
-
-RUN pip install coverage
+RUN apt-get install wget
+# install hisat
+ARG VERSION='2.1.0'
+ENV PATH=$PATH:${pwd}/hisat2-${VERSION}
+RUN rm -rf hisat-${VERSION}* &&\
+    wget -q "ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-${VERSION}-Linux_x86_64.zip" &&\
+    unzip -q hisat2-${VERSION}-Linux_x86_64.zip &&\
+    rm hisat2-${VERSION}-Linux_x86_64.zip &&\
+    hisat2 --version
 
 COPY ./ /kb/module
 RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
-RUN sh /kb/module/install-hisat.sh
 
 WORKDIR /kb/module
 

@@ -3,7 +3,7 @@ Some utility functions for the HISAT2 module.
 These mainly deal with manipulating files from Workspace objects.
 There's also some parameter checking and munging functions.
 """
-from __future__ import print_function
+
 
 import re
 from pprint import pprint
@@ -60,7 +60,7 @@ def check_hisat2_parameters(params, ws_url):
 
 
 def valid_string(s, is_ref=False):
-    is_valid = isinstance(s, basestring) and len(s.strip()) > 0
+    is_valid = isinstance(s, str) and len(s.strip()) > 0
     if is_valid and is_ref:
         is_valid = check_reference(s)
     return is_valid
@@ -139,7 +139,7 @@ def get_object_names(ref_list, ws_url):
 
 
 def package_directory(callback_url, dir_path, zip_file_name, zip_file_description):
-    ''' Simple utility for packaging a folder and saving to shock '''
+    """ Simple utility for packaging a folder and saving to shock """
     dfu = DataFileUtil(callback_url)
     output = dfu.file_to_shock({'file_path': dir_path,
                                 'make_handle': 0,
