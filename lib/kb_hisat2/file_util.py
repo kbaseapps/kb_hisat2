@@ -3,15 +3,12 @@ Utility functions to fetch files from various Workspace object types.
 Depends on the more general util.py that's here, too.
 """
 from pprint import pprint
-from SetAPI.SetAPIClient import SetAPI
-from AssemblyUtil.AssemblyUtilClient import AssemblyUtil
-from ReadsUtils.ReadsUtilsClient import ReadsUtils
-from Workspace.WorkspaceClient import Workspace
-from kb_hisat2.util import (
-    check_ref_type,
-    get_object_type,
-    get_object_names
-)
+
+from installed_clients.AssemblyUtilClient import AssemblyUtil
+from installed_clients.ReadsUtilsClient import ReadsUtils
+from installed_clients.SetAPIServiceClient import SetAPI
+from installed_clients.WorkspaceClient import Workspace
+from kb_hisat2.util import check_ref_type, get_object_type, get_object_names
 
 
 def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):

@@ -4,27 +4,22 @@ hisat2.py - the core of the HISAT module.
 This does all the heavy lifting of running HISAT2 to align reads against a reference sequence.
 """
 from __future__ import print_function
-import subprocess
+
 import os
 import re
-from pprint import pprint
-from pipes import quote  # deprecated, but useful here for filenames
-from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
-from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
-from KBaseReport.KBaseReportClient import KBaseReport
-from KBParallel.KBParallelClient import KBParallel
-# from kb_GenomeBrowser.kb_GenomeBrowserClient import kb_GenomeBrowser as GenomeBrowser
-from kb_QualiMap.kb_QualiMapClient import kb_QualiMap
-from SetAPI.SetAPIClient import SetAPI
-from file_util import (
-    fetch_reads_from_reference
-)
-from util import (
-    package_directory,
-    is_set,
-    get_object_names
-)
+import subprocess
 import uuid
+from pipes import quote  # deprecated, but useful here for filenames
+from pprint import pprint
+
+from installed_clients.KBParallelClient import KBParallel
+from installed_clients.KBaseReportClient import KBaseReport
+from installed_clients.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
+from installed_clients.SetAPIServiceClient import SetAPI
+from installed_clients.kb_QualiMapClient import kb_QualiMap
+from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
+from kb_hisat2.file_util import fetch_reads_from_reference
+from kb_hisat2.util import package_directory, is_set, get_object_names
 
 HISAT_VERSION = "2.1.0"
 
