@@ -19,7 +19,7 @@ from installed_clients.SetAPIServiceClient import SetAPI
 from installed_clients.kb_QualiMapClient import kb_QualiMap
 from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from kb_hisat2.file_util import fetch_reads_from_reference
-from kb_hisat2.util import package_directory, is_set, get_object_names
+from kb_hisat2.util import package_directory, is_set, get_object_names, get_path
 
 HISAT_VERSION = "2.1.0"
 
@@ -156,17 +156,22 @@ class Hisat2(object):
         alignments = dict()
         for idx, result in enumerate(results):
             # idx of the result is the same as the idx of the inputs AND reads_refs
-            if result["is_error"] != 0:
-                raise RuntimeError("Failed a parallel run of HISAT2! {}".format(result["result_package"]["error"]))
+            ref_path = ['result_package', 'result', 0, 'alignment_items', reads_ref, 'ref']
+            ref = get_path(result, ref_path)
+            reads_ref_path = ['result_package', 'result', 0, 'alignment_objs', reads_ref]
+            reads_ref = get_path(result, reads_ref_path)
+            if not ref or not reads_ref or result["is_error"] != 0:
+                print('Result is:', result)
+                raise RuntimeError("Failed a parallel run of HISAT2. See result above")
             reads_ref = tasks[idx]["parameters"]["sampleset_ref"]
             alignment_items.append({
-                "ref": result["result_package"]["result"][0]["alignment_objs"][reads_ref]["ref"],
+                "ref": ref,
                 "label": reads_refs[idx].get(
                     "condition",
                     params.get("condition",
                                "unspecified"))
             })
-            alignments[reads_ref] = result["result_package"]["result"][0]["alignment_objs"][reads_ref]
+            alignments[reads_ref] = reads_ref
         # build the final alignment set
         output_ref = self.upload_alignment_set(
             alignment_items, set_name + params["alignmentset_suffix"], params["ws_name"]
