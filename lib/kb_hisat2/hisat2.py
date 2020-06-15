@@ -145,7 +145,7 @@ class Hisat2(object):
         # UNCOMMENT BELOW FOR LOCAL TESTING
         batch_run_params = {
             "tasks": tasks,
-            "runner": "parallel",
+            "runner": "local_serial",
             # "concurrent_local_tasks": 3,
             # "concurrent_njsw_tasks": 0,
             "max_retries": 2
@@ -155,23 +155,20 @@ class Hisat2(object):
         alignment_items = list()
         alignments = dict()
         for idx, result in enumerate(results):
+            print('run_hisat2 result is:', result)
             # idx of the result is the same as the idx of the inputs AND reads_refs
-            ref_path = ['result_package', 'result', 0, 'alignment_items', reads_ref, 'ref']
-            ref = get_path(result, ref_path)
-            reads_ref_path = ['result_package', 'result', 0, 'alignment_objs', reads_ref]
-            reads_ref = get_path(result, reads_ref_path)
-            if not ref or not reads_ref or result["is_error"] != 0:
-                print('Result is:', result)
-                raise RuntimeError("Failed a parallel run of HISAT2. See result above")
             reads_ref = tasks[idx]["parameters"]["sampleset_ref"]
+            ref_path = ['result_package', 'result', 0, 'alignment_objs', reads_ref, 'ref']
+            ref = get_path(result, ref_path)
+            if not ref or result.get("is_error") != 0:
+                raise RuntimeError("Failed a parallel run of HISAT2. See result above")
             alignment_items.append({
                 "ref": ref,
-                "label": reads_refs[idx].get(
-                    "condition",
-                    params.get("condition",
-                               "unspecified"))
+                "label": reads_refs[idx].get("condition", params.get("condition", "unspecified"))
             })
-            alignments[reads_ref] = reads_ref
+            reads_obj_path = ['result_package', 'result', 0, 'alignment_objs', reads_ref]
+            reads_obj = get_path(result, reads_obj_path)
+            alignments[reads_ref] = reads_obj
         # build the final alignment set
         output_ref = self.upload_alignment_set(
             alignment_items, set_name + params["alignmentset_suffix"], params["ws_name"]

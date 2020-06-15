@@ -8,6 +8,7 @@ import os
 from kb_hisat2.file_util import fetch_reads_refs_from_sampleset
 from kb_hisat2.hisat2 import Hisat2
 from kb_hisat2.util import check_hisat2_parameters
+from kb_hisat2.logger import init_logger
 #END_HEADER
 
 
@@ -46,7 +47,7 @@ class kb_hisat2:
         self.workspace_url = config['workspace-url']
         self.shared_folder = config['scratch']
         self.num_threads = 2
-
+        self.log = init_logger(config['scratch'])
         #END_CONSTRUCTOR
         pass
 
@@ -122,8 +123,10 @@ class kb_hisat2:
         # 0. check the parameters
         param_err = check_hisat2_parameters(params, self.workspace_url)
         if len(param_err) > 0:
+            log_msg = "Parameter errors:\n"
             for err in param_err:
-                print(err)
+                log_msg += f"  {err}\n"
+            self.log.error(log_msg)
             raise ValueError("Errors found in parameters, see logs for details.")
         hs_runner = Hisat2(self.callback_url,
                            self.srv_wiz_url,
@@ -134,6 +137,7 @@ class kb_hisat2:
         reads_refs = fetch_reads_refs_from_sampleset(
             params["sampleset_ref"], self.workspace_url, self.srv_wiz_url
         )
+        self.log.debug(f"reads_refs: {reads_refs}")
         # 2. Run hisat with index and reads.
         alignments = dict()
         output_ref = None
@@ -147,9 +151,14 @@ class kb_hisat2:
         if len(reads_refs) == 1:
             # if params["sampleset_ref"] is a Set type, this will make a set on output.
             # otherwise, it doesn't.
+            self.log.debug(f"Running single (hs_runner.run_single)")
             (alignments, output_ref, alignmentset_ref) = hs_runner.run_single(reads_refs[0], params)
         else:
+            self.log.debug(f"Running batch (hs_runner.run_single)")
             (alignments, alignmentset_ref) = hs_runner.run_batch(reads_refs, params)
+        self.log.debug(f"alignments: {alignments}")
+        self.log.debug(f"output_ref: {output_ref}")
+        self.log.debug(f"alignmentset_ref: {alignmentset_ref}")
 
         if params.get("build_report", 0) == 1:
             report_info = hs_runner.build_report(params, reads_refs, alignments,
@@ -158,6 +167,7 @@ class kb_hisat2:
             returnVal["report_name"] = report_info["name"]
         returnVal["alignment_objs"] = alignments
         returnVal["alignmentset_ref"] = alignmentset_ref
+        self.log.debug(f"returnVal: {returnVal}")
         #END run_hisat2
 
         # At some point might do deeper type checking...

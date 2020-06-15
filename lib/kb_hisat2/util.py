@@ -60,7 +60,7 @@ def check_hisat2_parameters(params, ws_url):
 
 
 def valid_string(s, is_ref=False):
-    is_valid = isinstance(s, basestring) and len(s.strip()) > 0
+    is_valid = isinstance(s, str) and len(s.strip()) > 0
     if is_valid and is_ref:
         is_valid = check_reference(s)
     return is_valid

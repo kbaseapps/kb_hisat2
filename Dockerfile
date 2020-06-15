@@ -1,4 +1,4 @@
-FROM kbase/kbase:sdkbase2.latest
+FROM kbase/sdkbase2:python
 MAINTAINER KBase Developer
 # -----------------------------------------
 # In this section, you can install any system dependencies required
@@ -16,7 +16,7 @@ RUN pip install coverage
 COPY ./ /kb/module
 RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
-RUN sh /kb/module/install-hisat.sh
+RUN echo hi && sh /kb/module/install-hisat.sh
 
 WORKDIR /kb/module
 
