@@ -15,8 +15,13 @@ def fetch_fasta_from_genome(genome_ref, ws_url, callback_url):
     """
     Returns an assembly or contigset as FASTA.
     """
-    if not check_ref_type(genome_ref, ['KBaseGenomes.Genome'], ws_url):
-        raise ValueError("The given genome_ref {} is not a KBaseGenomes.Genome type!")
+
+    allowed_types = ['KBaseGenomes.Genome',
+                     'KBaseMetagenomes.AnnotatedMetagenomeAssembly']
+
+    if not check_ref_type(genome_ref, allowed_types, ws_url):
+        raise ValueError("The given genome_ref {} is not a {} type!".format(genome_ref,
+                                                                            ' or '.join(allowed_types)))
     # test if genome references an assembly type
     # do get_objects2 without data. get list of refs
     ws = Workspace(ws_url)
@@ -67,7 +72,7 @@ def fetch_fasta_from_object(ref, ws_url, callback_url):
     the path to a FASTA file made from its sequence.
     """
     obj_type = get_object_type(ref, ws_url)
-    if "KBaseGenomes.Genome" in obj_type:
+    if "KBaseGenomes.Genome" in obj_type or "KBaseMetagenomes.AnnotatedMetagenomeAssembly" in obj_type:
         return fetch_fasta_from_genome(ref, ws_url, callback_url)
     elif "KBaseGenomeAnnotations.Assembly" in obj_type or "KBaseGenomes.ContigSet" in obj_type:
         return fetch_fasta_from_assembly(ref, ws_url, callback_url)

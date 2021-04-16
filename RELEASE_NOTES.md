@@ -9,3 +9,4 @@
 
 ### Version 1.1.4
 - add github action
+- add KBaseMetagenomes.AnnotatedMetagenomeAssembly as a valid input argument that HISAT2 will align against
