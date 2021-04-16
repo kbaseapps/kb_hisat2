@@ -23,6 +23,7 @@ from util import (
     load_reads,
     load_reads_set,
     load_sample_set,
+    load_ama,
 )
 # kinda cheating, but I don't want to duplicate code for no good reason.
 from kb_hisat2.util import check_reference, get_object_names
@@ -147,6 +148,9 @@ class kb_hisat2Test(unittest.TestCase):
             if "KBaseGenomeAnnotations.Assembly" in info[2] or "KBaseGenomes.ContigSet" in info[2]:
                 assembly_ref.append(";".join(ref_info.get('paths')[idx]))
         cls.assembly_ref = assembly_ref[0]
+
+        cls.ama_ref = load_ama(
+            cls.wsURL, cls.callback_url, cls.ws_name, cls.assembly_ref, gbk_file, "test_mini_ama")
 
     @classmethod
     def tearDownClass(cls):
@@ -274,6 +278,41 @@ class kb_hisat2Test(unittest.TestCase):
             "sampleset_ref": self.single_end_ref_wt_1,
             "condition": "wt",
             "genome_ref": self.assembly_ref,
+            "alignmentset_suffix": "_alignment_set",
+            "alignment_suffix": "_alignment",
+            "num_threads": 2,
+            "quality_score": "phred33",
+            "skip": 0,
+            "trim3": 0,
+            "trim5": 0,
+            "np": 1,
+            "min_intron_length": 20,
+            "max_intron_length": 500000,
+            "no_spliced_alignment": 0,
+            "transcriptome_mapping_only": 0,
+            "build_report": 1
+        })[0]
+        self.assertIsNotNone(res)
+        print("Done with HISAT2 run! {}".format(res))
+        self.assertIn("report_ref", res)
+        self.assertTrue(check_reference(res["report_ref"]))
+        self.assertIn("report_name", res)
+        self.assertIn("alignmentset_ref", res)
+        self.assertIsNone(res["alignmentset_ref"])
+        self.assertIn("alignment_objs", res)
+        self.assertTrue(len(res["alignment_objs"].keys()) == 1)
+        for reads_ref in res["alignment_objs"]:
+            ref_from_refpath = reads_ref.split(';')[-1]
+            self.assertIn(ref_from_refpath, self.reads_refs)
+            self.assertTrue(res["alignment_objs"][reads_ref]["name"].endswith("_alignment"))
+            self.assertTrue(check_reference(res["alignment_objs"][reads_ref]["ref"]))
+
+    def test_run_hisat2_ama_ok(self):
+        res = self.get_impl().run_hisat2(self.get_context(), {
+            "ws_name": self.ws_name,
+            "sampleset_ref": self.single_end_ref_wt_1,
+            "condition": "wt",
+            "genome_ref": self.ama_ref,
             "alignmentset_suffix": "_alignment_set",
             "alignment_suffix": "_alignment",
             "num_threads": 2,

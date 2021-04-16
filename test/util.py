@@ -6,6 +6,7 @@ from installed_clients.GenomeFileUtilClient import GenomeFileUtil
 from installed_clients.ReadsUtilsClient import ReadsUtils
 from installed_clients.SetAPIServiceClient import SetAPI
 from installed_clients.WorkspaceClient import Workspace
+from installed_clients.DataFileUtilClient import DataFileUtil
 
 
 def load_fasta_file(callback_url, ws_name, filename, obj_name, contents):
@@ -103,6 +104,41 @@ def load_sample_set(workspace_url, ws_name, reads_refs, conditions, library_type
             "data": sample_set,
             "name": target_name,
             "provenance": [{"input_ws_objects": reads_refs}]
+        }]
+    })
+    ss_ref = "{}/{}/{}".format(ss_obj[0][6], ss_obj[0][0], ss_obj[0][4])
+    return ss_ref
+
+
+def load_ama(workspace_url, callback_url, ws_name, assembly_ref, local_file, target_name):
+    """
+    Upload a mini test AnnotatedMetagenomeAssembly object
+    """
+    dfu = DataFileUtil(callback_url)
+    handle_ref = dfu.file_to_shock({'file_path': local_file,
+                                    'make_handle': True})['handle']['hid']
+
+    ama_data = {
+        "feature_counts": {'test_feature': 10},
+        "dna_size": 10,
+        "num_contigs": 10,
+        "num_features": 10,
+        "molecule_type": 'test molecule type',
+        "source": 'User_upload',
+        "md5": 'test md5',
+        "gc_content": 0.1,
+        "assembly_ref": assembly_ref,
+        "features_handle_ref": handle_ref,
+        "protein_handle_ref": handle_ref,
+        "environment": 'test environment'
+    }
+    ws_client = Workspace(workspace_url)
+    ss_obj = ws_client.save_objects({
+        "workspace": ws_name,
+        "objects": [{
+            "type": "KBaseMetagenomes.AnnotatedMetagenomeAssembly",
+            "data": ama_data,
+            "name": target_name
         }]
     })
     ss_ref = "{}/{}/{}".format(ss_obj[0][6], ss_obj[0][0], ss_obj[0][4])
