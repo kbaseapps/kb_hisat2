@@ -9,7 +9,7 @@ This will get onto the local filesystem (either from a datastore or by direct ge
 HISAT2 index files from either a genome or assembly (or contigset) object. If generated, these
 are also stored somewhere and associated with the genome ref.
 """
-from __future__ import print_function
+
 
 import os
 import subprocess

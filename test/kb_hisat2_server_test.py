@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+
 
 import os  # noqa: F401
 import shutil
@@ -8,7 +8,7 @@ import unittest
 from os import environ
 
 try:
-    from ConfigParser import ConfigParser  # py2
+    from configparser import ConfigParser  # py2
 except:
     from configparser import ConfigParser  # py3
 
@@ -222,7 +222,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertTrue(check_reference(res["alignmentset_ref"]))
         self.assertTrue(get_object_names([res["alignmentset_ref"]], self.wsURL)[res["alignmentset_ref"]].endswith("_alignment_set"))
         self.assertIn("alignment_objs", res)
-        self.assertTrue(len(res["alignment_objs"].keys()) == 2)
+        self.assertTrue(len(list(res["alignment_objs"].keys())) == 2)
         for reads_ref in res["alignment_objs"]:
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)
@@ -256,7 +256,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIn("alignmentset_ref", res)
         self.assertIsNone(res["alignmentset_ref"])
         self.assertIn("alignment_objs", res)
-        self.assertTrue(len(res["alignment_objs"].keys()) == 1)
+        self.assertTrue(len(list(res["alignment_objs"].keys())) == 1)
         for reads_ref in res["alignment_objs"]:
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)
@@ -300,7 +300,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIn("alignmentset_ref", res)
         self.assertIsNone(res["alignmentset_ref"])
         self.assertIn("alignment_objs", res)
-        self.assertTrue(len(res["alignment_objs"].keys()) == 1)
+        self.assertTrue(len(list(res["alignment_objs"].keys())) == 1)
         for reads_ref in res["alignment_objs"]:
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)
@@ -335,7 +335,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertIn("alignmentset_ref", res)
         self.assertIsNone(res["alignmentset_ref"])
         self.assertIn("alignment_objs", res)
-        self.assertTrue(len(res["alignment_objs"].keys()) == 1)
+        self.assertTrue(len(list(res["alignment_objs"].keys())) == 1)
         for reads_ref in res["alignment_objs"]:
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)
@@ -369,7 +369,7 @@ class kb_hisat2Test(unittest.TestCase):
         self.assertTrue(check_reference(res["alignmentset_ref"]))
         self.assertTrue(get_object_names([res["alignmentset_ref"]], self.wsURL)[res["alignmentset_ref"]].endswith("_sampleset_alignments"))
         self.assertIn("alignment_objs", res)
-        self.assertTrue(len(res["alignment_objs"].keys()) == 2)
+        self.assertTrue(len(list(res["alignment_objs"].keys())) == 2)
         for reads_ref in res["alignment_objs"]:
             ref_from_refpath = reads_ref.split(';')[-1]
             self.assertIn(ref_from_refpath, self.reads_refs)
