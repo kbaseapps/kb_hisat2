@@ -269,7 +269,7 @@ class kb_hisat2Test(unittest.TestCase):
             self.assertEqual(align_stats.get('total_reads'), 15254)
             self.assertEqual(align_stats.get('mapped_reads'), 15081)
             self.assertEqual(align_stats.get('unmapped_reads'), 173)
-            self.assertEqual(align_stats.get('singletons'), 11044)
+            self.assertEqual(align_stats.get('singletons'), 0)
             self.assertEqual(align_stats.get('multiple_alignments'), 4037)
 
     def test_run_hisat2_assembly_ok(self):
