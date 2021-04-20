@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
 # The header block is where all import statments should live
-from __future__ import print_function
+
 
 import os
 

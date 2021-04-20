@@ -3,7 +3,7 @@ hisat2.py - the core of the HISAT module.
 -----------------------------------------
 This does all the heavy lifting of running HISAT2 to align reads against a reference sequence.
 """
-from __future__ import print_function
+
 
 import os
 import re
@@ -366,7 +366,7 @@ class Hisat2(object):
         qm = kb_QualiMap(self.callback_url, service_ver='dev')
         qc_ref = alignment_set
         if qc_ref is None:  # then there's only one alignment...
-            qc_ref = alignments[alignments.keys()[0]]["ref"]
+            qc_ref = alignments[list(alignments.keys())[0]]["ref"]
         bamqc_params = {
             "create_report": 0,
             "input_ref": qc_ref

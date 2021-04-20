@@ -3,7 +3,7 @@ Some utility functions for the HISAT2 module.
 These mainly deal with manipulating files from Workspace objects.
 There's also some parameter checking and munging functions.
 """
-from __future__ import print_function
+
 
 import re
 from pprint import pprint
@@ -60,7 +60,7 @@ def check_hisat2_parameters(params, ws_url):
 
 
 def valid_string(s, is_ref=False):
-    is_valid = isinstance(s, basestring) and len(s.strip()) > 0
+    is_valid = isinstance(s, str) and len(s.strip()) > 0
     if is_valid and is_ref:
         is_valid = check_reference(s)
     return is_valid
