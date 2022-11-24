@@ -32,7 +32,7 @@ class Hisat2(object):
         self.working_dir = working_dir
         self.provenance = provenance
         self.my_version = 'release'
-        if len(provenance) > 0:
+        if provenance and len(provenance) > 0:
             if 'subactions' in provenance[0]:
                 self.my_version = self.__get_version_from_subactions('kb_hisat2', provenance[0]['subactions'])
         print('Running kb_hisat2 version = ' + self.my_version)
