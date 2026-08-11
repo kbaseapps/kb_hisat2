@@ -21,7 +21,7 @@ from kb_hisat2.hisat2indexmanager import Hisat2IndexManager
 from kb_hisat2.file_util import fetch_reads_from_reference
 from kb_hisat2.util import package_directory, is_set, get_object_names
 
-HISAT_VERSION = "2.1.0"
+HISAT_VERSION = "2.2.1"
 
 
 class Hisat2(object):
